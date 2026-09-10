@@ -1,0 +1,77 @@
+const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+let pw;
+try { pw = require('playwright'); } catch { pw = require(path.join(process.env.USERPROFILE, '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
+const digest = text => createHash('sha256').update(text, 'utf8').digest('hex');
+(async () => {
+  const browser = await pw.chromium.launch({ channel: 'msedge', headless: true });
+  const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, reducedMotion: 'no-preference' });
+  const errors = [], networkRequests = [];
+  page.on('pageerror', e => errors.push(e.message));
+  page.on('request', r => { if (/^https?:/.test(r.url())) networkRequests.push(r.url()); });
+  await page.goto(pathToFileURL(path.resolve(__dirname, '../apresentacao.html')).href);
+  const go = async id => {
+    await page.evaluate(id => { const slides = [...document.querySelectorAll('.slide')]; location.hash = String(slides.indexOf(document.getElementById(id)) + 1); }, id);
+    await page.waitForFunction(id => document.getElementById(id).classList.contains('active'), id);
+  };
+  const fits = async () => { const result = await page.locator('.slide.active').evaluate(s => ({ id: s.id, scroll: s.scrollHeight, height: s.clientHeight })); assert(result.scroll <= result.height + 2, JSON.stringify(result)); };
+  await go('flow-slide');
+  for (let i = 0; i < 4; i++) await page.locator('#flow-next').click();
+  assert.equal(await page.locator('#flow-block-state').innerText(), 'confirmado'); assert(await page.locator('#flow-next').isDisabled()); await fits();
+  const animated = page.locator('#flow-slide .ambient-block').first();
+  assert.equal(await animated.evaluate(e => getComputedStyle(e).animationPlayState), 'running');
+  await page.locator('#motion-toggle').click(); assert.equal(await animated.evaluate(e => getComputedStyle(e).animationPlayState), 'paused');
+  await page.locator('#motion-toggle').click(); assert.equal(await animated.evaluate(e => getComputedStyle(e).animationPlayState), 'running');
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await page.waitForFunction(() => document.querySelector('#motion-toggle').disabled); assert.equal(await animated.evaluate(e => getComputedStyle(e).animationName), 'none');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await go('hash-slide');
+  for (const input of ['abc', '', 'Olá 🔐\nUTF-8', '<img src=x onerror=alert(1)>']) {
+    await page.locator('#hash-input').fill(input);
+    await page.waitForFunction(expected => document.querySelector('#hash-output-b').textContent === expected, digest(input));
+    assert.equal(await page.locator('#hash-output-b img').count(), 0);
+  }
+  await page.locator('#hash-reference').fill('abc'); await page.locator('#hash-match').click();
+  await page.waitForFunction(() => document.querySelector('#hash-bit-count').textContent === '0');
+  await page.locator('#hash-space').click(); await page.waitForFunction(expected => document.querySelector('#hash-output-b').textContent === expected, digest('abc '));
+  const xorBits = [...digest('abc')].reduce((sum, c, i) => sum + (parseInt(c, 16) ^ parseInt(digest('abc ')[i], 16)).toString(2).replace(/0/g, '').length, 0);
+  assert.equal(Number(await page.locator('#hash-bit-count').innerText()), xorBits);
+  await page.locator('#hash-input').fill('a'.repeat(1000)); await page.locator('#hash-space').click(); assert.equal((await page.locator('#hash-input').inputValue()).length, 1000);
+  await page.locator('#hash-reset').click(); await fits();
+  await go('chain-slide'); await page.waitForFunction(() => !document.querySelector('#chain-data-0').disabled);
+  const originalHashes = await page.locator('.current-hash').evaluateAll(nodes => nodes.map(n => n.title));
+  assert.equal(originalHashes[0], digest(JSON.stringify([1, '0'.repeat(64), 'Alice envia 10 para Bob'])));
+  await page.locator('#chain-data-0').fill('Alice envia 100 para Bob');
+  await page.waitForFunction(() => document.querySelectorAll('.bad-link').length === 1);
+  assert.equal(await page.locator('.affected').count(), 1); await fits();
+  await page.locator('#chain-relink').click(); await page.waitForFunction(() => !document.querySelector('#chain-relink').disabled && document.querySelectorAll('.bad-link').length === 0);
+  assert.match(await page.locator('#chain-status').innerText(), /não representa aprovação/); await fits();
+  const changedHashes = await page.locator('.current-hash').evaluateAll(nodes => nodes.map(n => n.title));
+  assert(changedHashes.every((h, i) => h !== originalHashes[i]));
+  await page.locator('#chain-reset').click(); await page.waitForFunction(() => !document.querySelector('#chain-reset').disabled);
+  assert.deepEqual(await page.locator('.current-hash').evaluateAll(nodes => nodes.map(n => n.title)), originalHashes);
+  await page.locator('#chain-data-2').fill('Alteração do último bloco'); await page.waitForFunction(() => document.querySelectorAll('.modified').length === 1); assert.equal(await page.locator('.bad-link').count(), 0);
+  await go('pow-slide'); await page.locator('#pow-nonce').fill('-1'); await page.waitForFunction(() => document.querySelector('#pow-status').textContent.includes('inteiro'));
+  await page.locator('#pow-nonce').fill('0'); await page.locator('#pow-difficulty').selectOption('2');
+  await page.locator('#pow-mine').click(); await page.waitForFunction(() => document.querySelector('#pow-status').textContent.startsWith('Encontrado'), { timeout: 20000 });
+  const nonce = Number(await page.locator('#pow-nonce').inputValue());
+  const powHash = digest(JSON.stringify(['Bloco de demonstração', nonce]));
+  assert(powHash.startsWith('00')); assert.equal(await page.locator('#pow-hash').innerText(), powHash); await fits();
+  await page.locator('#pow-data').fill('Dado adulterado'); await page.waitForFunction(expected => document.querySelector('#pow-hash').textContent === expected, digest(JSON.stringify(['Dado adulterado', nonce])));
+  await page.locator('#pow-mine').click(); await page.locator('#pow-stop').click(); assert.match(await page.locator('#pow-status').innerText(), /interrompida/);
+  await page.locator('#pow-mine').click(); await go('networks-slide'); assert(await page.locator('#pow-mine').isEnabled());
+  for (const network of ['btc', 'eth', 'sol']) { await page.locator(`[data-network=${network}]`).click(); assert.match(await page.locator('#network-detail').innerText(), new RegExp(network.toUpperCase())); await fits(); }
+  await go('contract-slide'); await page.locator('#contract-release').click(); assert.match(await page.locator('#contract-result').innerText(), /Falta o depósito/);
+  await page.locator('#contract-deposit').click(); await page.locator('#contract-release').click(); assert.match(await page.locator('#contract-result').innerText(), /Entrega ainda/);
+  await page.locator('#contract-confirm').click(); await page.locator('#contract-caller').selectOption('outsider'); await page.locator('#contract-release').click(); assert.equal(await page.locator('#seller-balance').innerText(), '0'); assert.match(await page.locator('#contract-result').innerText(), /não autorizado/); await fits();
+  await page.locator('#contract-caller').selectOption('buyer'); await page.locator('#contract-release').click(); assert.equal(await page.locator('#seller-balance').innerText(), '10'); assert.equal(await page.locator('#escrow-balance').innerText(), '0');
+  await page.locator('#contract-release').click(); assert.match(await page.locator('#contract-result').innerText(), /segunda retirada/); assert.equal(await page.locator('#seller-balance').innerText(), '10'); await fits();
+  await page.locator('#contract-reset').click(); assert.equal(await page.locator('#seller-balance').innerText(), '0');
+  await go('solana-slide'); await page.locator('[data-conflict=yes]').click(); assert.match(await page.locator('#parallel-result').innerText(), /escrevem em X/); await fits(); await page.locator('[data-conflict=no]').click();
+  await page.setViewportSize({ width: 390, height: 844 }); await go('hash-slide'); await page.locator('#hash-input').fill('abc'); await page.waitForFunction(expected => document.querySelector('#hash-output-b').textContent === expected, digest('abc')); assert.equal(await page.locator('#slide-current').innerText(), '15');
+  await page.locator('#hash-input').press('ArrowRight'); assert.equal(await page.locator('#slide-current').innerText(), '15');
+  assert.deepEqual(errors, []); assert.deepEqual(networkRequests, []);
+  console.log('SHA-256, UTF-8, avalanche, chain tampering, mining limits/cancel, contract guards, animation controls and offline checks passed.');
+  await browser.close();
+})().catch(e => { console.error(e); process.exit(1); });

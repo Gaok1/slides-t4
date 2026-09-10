@@ -32,6 +32,7 @@ function goTo(index, updateHash = true) {
   $('#announcer').textContent = `Slide ${current + 1} de ${slides.length}: ${slide.dataset.title}`;
   document.title = `${current + 1}. ${slide.dataset.title} · PQC & Blockchain`;
   if (updateHash) history.replaceState(null, '', `#${current + 1}`);
+  document.dispatchEvent(new Event('slidechange'));
 }
 
 slides.forEach((slide, i) => {
@@ -95,7 +96,7 @@ document.addEventListener('keydown', event => {
 });
 let touchStart;
 $('#deck').addEventListener('touchstart', event => {
-  if (event.target.closest('button,a,input,select')) { touchStart = null; return; }
+  if (event.target.closest('button,a,input,select,textarea')) { touchStart = null; return; }
   touchStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
 }, { passive: true });
 $('#deck').addEventListener('touchend', event => {
