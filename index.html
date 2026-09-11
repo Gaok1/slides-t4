@@ -15,7 +15,7 @@
     <button data-goto="3">01 <span>A ameaça</span></button>
     <button data-goto="10">02 <span>A defesa</span></button>
     <button data-goto="14">03 <span>A blockchain</span></button>
-    <button data-goto="27">04 <span>O horizonte</span></button>
+    <button data-goto="29">04 <span>O horizonte</span></button>
   </nav>
   <button id="overview-open" class="icon-button" title="Visão geral (G)" aria-label="Abrir visão geral">▦</button>
 </header>
@@ -42,7 +42,7 @@
       <button class="act-card" data-goto="3"><span class="act-no">I</span><span class="mono cyan">1976—2009</span><h3>A conta que<br>ninguém pagou</h3><p>Chave pública, Shor e a origem do Bitcoin.</p><span class="act-link">A ameaça <b>↗</b></span></button>
       <button class="act-card" data-goto="10"><span class="act-no">II</span><span class="mono cyan">1978—2025</span><h3>A defesa<br>se organiza</h3><p>Famílias pós-quânticas, NIST e novas assinaturas.</p><span class="act-link">A defesa <b>↗</b></span></button>
       <button class="act-card" data-goto="14"><span class="act-no">III</span><span class="mono amber">2025—2026</span><h3>A blockchain<br>acorda</h3><p>BTC, ETH, SOL, contratos e laboratórios de hashing.</p><span class="act-link">A blockchain <b>↗</b></span></button>
-      <button class="act-card" data-goto="27"><span class="act-no">IV</span><span class="mono amber">2026—2035</span><h3>O horizonte</h3><p>Padronização, prazos e decisões sem uma data para o Q-Day.</p><span class="act-link">O horizonte <b>↗</b></span></button>
+      <button class="act-card" data-goto="29"><span class="act-no">IV</span><span class="mono amber">2026—2035</span><h3>O horizonte</h3><p>Padronização, prazos e decisões sem uma data para o Q-Day.</p><span class="act-link">O horizonte <b>↗</b></span></button>
     </div>
     <p class="footnote">Clique em um ato para navegar. Use as setas do teclado para avançar e voltar.</p>
     <aside class="notes">A linha narrativa é linear dentro de cada ato. O segundo ato retorna a 1978 para mostrar que algumas alternativas à criptografia clássica antecedem o ataque de Shor. Fonte principal: PDF fornecido, páginas 1 a 7.</aside>
@@ -148,24 +148,58 @@
     <aside class="notes">Hash não é criptografia reversível, assinatura ou prova de autoria. SHA-256 real sobre bytes UTF-8 via Web Crypto, sem envio a servidores. Espaços, acentos e quebras de linha fazem parte da entrada. Uma alteração tende a mudar muitos bits, mas não há garantia de exatamente metade nem de ausência matemática de colisões. Usamos SHA-256 para ensino, sem representar todos os hashes de BTC, ETH e SOL.</aside>
   </section>
 
-  <section class="slide blockchain-lab" id="chain-slide" data-title="Um bloco alterado quebra a referência seguinte" data-act="3">
-    <p class="eyebrow">LABORATÓRIO · HASHES ENCADEADOS</p><h2>Um dado muda. <span class="cyan">Os elos denunciam.</span></h2>
-    <p class="intro">Edite um bloco. Compare seu hash com a referência guardada pelo próximo.</p>
+  <section class="slide blockchain-lab" id="chain-slide" data-title="O hash inclui os dados e o elo anterior" data-act="3">
+    <p class="eyebrow">LABORATÓRIO · HASHES ENCADEADOS</p><h2>O hash inclui <span class="cyan">os dados e o elo anterior</span></h2>
+    <p class="intro">SHA-256(JSON de [índice, hash anterior, dados]). O próprio hash é a saída, não parte da entrada.</p>
+    <div class="chain-controls"><div class="segmented" aria-label="Modo de encadeamento"><button data-chain-mode="cascade" aria-pressed="true">Propagar aos próximos</button><button data-chain-mode="frozen" aria-pressed="false">Congelar referências</button></div><button id="chain-reset" class="secondary" disabled>Restaurar original</button></div>
     <div id="linked-blocks" class="linked-blocks">
       <article class="linked-block"><div class="block-head"><b>BLOCO 01</b><span class="block-state"></span></div><label for="chain-data-0">Dados</label><input id="chain-data-0" class="chain-data" maxlength="80" value="Alice envia 10 para Bob"><span class="hash-output-label">HASH ANTERIOR GUARDADO</span><code class="previous-hash"></code><span class="hash-output-label">HASH DESTE BLOCO</span><code class="current-hash"></code></article>
       <article class="linked-block"><div class="block-head"><b>BLOCO 02</b><span class="block-state"></span></div><label for="chain-data-1">Dados</label><input id="chain-data-1" class="chain-data" maxlength="80" value="Bob envia 4 para Carol"><span class="hash-output-label">HASH ANTERIOR GUARDADO</span><code class="previous-hash"></code><span class="hash-output-label">HASH DESTE BLOCO</span><code class="current-hash"></code></article>
       <article class="linked-block"><div class="block-head"><b>BLOCO 03</b><span class="block-state"></span></div><label for="chain-data-2">Dados</label><input id="chain-data-2" class="chain-data" maxlength="80" value="Carol envia 2 para Dani"><span class="hash-output-label">HASH ANTERIOR GUARDADO</span><code class="previous-hash"></code><span class="hash-output-label">HASH DESTE BLOCO</span><code class="current-hash"></code></article>
     </div>
-    <div class="button-row"><button id="chain-relink" class="primary" disabled>Recalcular os elos locais</button><button id="chain-reset" class="secondary" disabled>Restaurar cadeia original</button></div><div id="chain-status" class="result" role="status">Preparando a cadeia…</div>
-    <p class="footnote">SHA-256 de [índice, hash anterior, dados]. Hashes abreviados. Recalcular elos não refaz PoW, assinaturas ou consenso e não reescreve uma blockchain real.</p>
-    <aside class="notes">Passe o cursor sobre os códigos para ver o hash completo. As referências anteriores permanecem até o clique em recalcular. Um bloco pode mudar seu hash sem quebrar o próprio elo de entrada, enquanto o próximo guarda a referência antiga. O primeiro usa uma âncora de zeros. “Elos coerentes” não significa transações válidas nem aprovação da rede. O selo original também permite detectar alterações no último bloco. <a href="https://developer.bitcoin.org/devguide/block_chain.html" target="_blank" rel="noopener">Bitcoin: encadeamento</a>.</aside>
+    <div id="chain-status" class="result" role="status">Preparando a cadeia…</div>
+    <p class="footnote">A propagação atualiza referências e hashes, mas não refaz PoW nem obtém consenso. No Bitcoin, o hash é do cabeçalho e as transações entram por sua raiz de Merkle.</p>
+    <aside class="notes">O modo padrão reconstrói o encadeamento local: editar o primeiro bloco recalcula os três hashes, editar o segundo recalcula o segundo e o terceiro. Nenhum bloco anterior muda. No modo congelado, cada elo conserva a referência da cadeia original, e a alteração quebra a correspondência seguinte. O botão de entrada completa mostra exatamente os bytes UTF-8 usados no SHA-256, incluindo o hash anterior inteiro. Índice e dados fazem parte do conteúdo deste modelo; rótulos, cores e o próprio hash de saída não fazem. O modelo não implementa o cabeçalho Bitcoin de 80 bytes, a árvore de Merkle ou PoW. Uma cadeia coerente localmente pode conter gastos inválidos e não significa histórico aceito. <a href="https://developer.bitcoin.org/reference/block_chain.html" target="_blank" rel="noopener">Bitcoin: cabeçalho e Merkle</a>.</aside>
   </section>
 
   <section class="slide blockchain-lab" id="pow-slide" data-title="PoW: encontrar custa, conferir é simples" data-act="3">
-    <p class="eyebrow">LABORATÓRIO · PROVA DE TRABALHO</p><h2>Encontrar custa.<br><span class="cyan">Conferir é simples.</span></h2>
-    <div class="split"><div><p class="intro">No Bitcoin, mineradores buscam um hash de cabeçalho abaixo de um alvo.</p><div class="line-item"><h3>O nonce muda a tentativa</h3><p>O mesmo conteúdo, com outro nonce, produz outro hash. A tentativa anterior não indica o caminho.</p></div><div class="line-item"><h3>ETH e SOL usam proof of stake</h3><p>Não há esta disputa de mineração por hash para produzir seus blocos.</p></div></div><div class="demo-box pow-box"><label for="pow-data" class="range-label">Dados do bloco didático</label><input id="pow-data" maxlength="80" value="Bloco de demonstração"><div class="pow-controls"><div><label for="pow-nonce">Nonce</label><input id="pow-nonce" type="number" min="0" max="9999999" step="1" value="0"></div><div><label for="pow-difficulty">Prefixo exigido</label><select id="pow-difficulty"><option value="1">0 · 1 zero</option><option value="2" selected>00 · 2 zeros</option></select></div></div><div id="pow-hash" class="hash-digest" aria-label="Hash da tentativa"></div><div class="button-row"><button id="pow-mine" class="primary">Buscar nonce</button><button id="pow-stop" class="secondary" disabled>Parar</button></div><div id="pow-status" class="result" role="status">Calculando tentativa inicial…</div></div></div>
-    <p class="footnote">SHA-256 simples de [dados, nonce], até 8.192 tentativas por clique. Bitcoin usa SHA-256 duplo e um alvo numérico, não esta regra simplificada de prefixo.</p>
-    <aside class="notes">A busca exige clique, tem limite de trabalho e para ao sair do slide. Não minera moedas nem conecta à rede. Cumprir a dificuldade não valida as transações. <a href="https://developer.bitcoin.org/devguide/block_chain.html" target="_blank" rel="noopener">Bitcoin PoW</a> · <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener">Ethereum PoS</a> · <a href="https://solana.com/staking" target="_blank" rel="noopener">Solana PoS</a>.</aside>
+    <p class="eyebrow">LABORATÓRIO · PROVA DE TRABALHO</p><h2>Proof of work: <span class="cyan">teste seu nonce.</span></h2>
+    <div class="split"><div><p class="intro">Escolha seu nonce e teste uma tentativa. O objetivo é obter o prefixo de zeros exigido.</p><div class="line-item"><h3>O resultado não dá pistas</h3><p>Nonces vizinhos geram hashes muito diferentes. Um prefixo quase certo não aproxima a próxima tentativa.</p></div><div class="pow-expectation"><span class="mono">ESFORÇO MÉDIO IDEALIZADO</span><strong id="pow-expected">256</strong><p>tentativas para 2 zeros hexadecimais</p></div><p class="small muted">Cada zero adicional multiplica a média por 16. Você pode acertar antes ou demorar muito mais.</p></div>
+    <div class="demo-box pow-box"><label for="pow-data" class="range-label">Dados do bloco didático</label><input id="pow-data" maxlength="80" value="Bloco de demonstração">
+      <div class="pow-controls"><div><label for="pow-nonce">Seu nonce · inteiro personalizado</label><input id="pow-nonce" type="number" min="0" max="4294967295" step="1" value="0"></div><div><label for="pow-difficulty">Prefixo exigido</label><select id="pow-difficulty"><option value="1">0 · 1 zero</option><option value="2" selected>00 · 2 zeros</option><option value="3">000 · 3 zeros</option><option value="4">0000 · 4 zeros</option></select></div></div>
+      <div class="pow-manual"><button id="pow-test" class="primary">Testar meu nonce</button><button id="pow-increment" class="secondary">+1 e testar</button><button id="pow-clear" class="text-button">Zerar contagem</button></div>
+      <div id="pow-hash" class="hash-digest" aria-label="Hash da tentativa"></div>
+      <div class="pow-metrics"><span>Testes: <b id="pow-attempts">0</b></span><span>Busca: <b id="pow-elapsed">0,0 s</b></span></div>
+      <div class="pow-auto"><select id="pow-pace" aria-label="Velocidade da busca"><option value="250">Didático · pausa de 250 ms</option><option value="0">Rápido · sem pausa didática</option></select><button id="pow-mine" class="secondary">Busca automática</button><button id="pow-stop" class="secondary" disabled>Parar</button></div>
+      <div id="pow-status" class="result" role="status">Escolha um nonce e clique em testar.</div>
+    </div></div>
+    <p class="footnote">PoW didático: SHA-256 simples de [dados, nonce]. Bitcoin usa SHA-256 duplo do cabeçalho e alvo numérico. Máximo: 8.192 tentativas ou 30 s por busca. A pausa didática não representa velocidade de mineração.</p>
+    <aside class="notes">O nonce aceita um inteiro de 0 a 4.294.967.295, faixa de 32 bits do campo nonce no cabeçalho Bitcoin. Testar exige clique, para permitir que a plateia proponha valores. A edição não conta como tentativa. A busca parte do nonce escolhido e pode ser pausada. O tempo inclui a pausa didática e o navegador, não é benchmark. A média 16^d decorre de exigir d zeros em uma saída hexadecimal uniforme e não é um prazo garantido. Repetir o mesmo nonce sobre os mesmos dados repete o mesmo resultado. Alterar dados ou dificuldade reinicia a contagem. Não há mineração de moedas nem conexão à rede. <a href="https://developer.bitcoin.org/reference/block_chain.html" target="_blank" rel="noopener">Bitcoin: nonce, alvo e cabeçalho</a>.</aside>
+  </section>
+
+  <section class="slide blockchain-lab" id="pos-slide" data-title="Proof of stake: capital em garantia" data-act="3">
+    <p class="eyebrow">CONSENSO · PROOF OF STAKE</p><h2>Em vez de tentar hashes,<br><span class="cyan">validadores colocam valor em jogo.</span></h2>
+    <p class="intro">O stake participa da seleção e do peso dos votos. As regras da rede continuam obrigatórias.</p>
+    <div class="consensus-stages" aria-label="Etapas do proof of stake">
+      <button data-pos="0" aria-pressed="true"><span>01 / GARANTIA</span><b>Stake</b><small>Capital vinculado ao protocolo</small></button>
+      <button data-pos="1" aria-pressed="false"><span>02 / PROPOSTA</span><b>Bloco</b><small>Um proponente é selecionado</small></button>
+      <button data-pos="2" aria-pressed="false"><span>03 / VERIFICAÇÃO</span><b>Votos</b><small>Outros validadores conferem</small></button>
+      <button data-pos="3" aria-pressed="false"><span>04 / ACORDO</span><b>Finalidade</b><small>O protocolo consolida o histórico</small></button>
+    </div>
+    <div class="consensus-detail"><span id="pos-number" class="consensus-number">01</span><div><h3 id="pos-title">Uma garantia econômica</h3><p id="pos-detail" role="status"></p></div></div>
+    <div class="consensus-contrast"><span><b>PoW</b> custo em computação e energia</span><span><b>PoS</b> capital em risco e validação</span><span><b>Ambos</b> exigem regras e verificação</span></div>
+    <p class="footnote">Clique nas etapas. Exemplo conceitual inspirado no Ethereum, não uma simulação de consenso. Solana também usa PoS, com regras próprias.</p>
+    <aside class="notes">No Ethereum, validadores depositam ETH e executam clientes de execução e consenso. Um proponente é selecionado para um slot e outros validadores atestam. A finalidade de checkpoints envolve supermaiorias de stake e regras entre épocas, não apenas um contador de votos. Recompensas e penalidades incentivam participação correta. Slashing se aplica a infrações específicas, como propostas ou votos conflitantes, não a qualquer erro ou desconexão. Ter muito stake não torna uma transação inválida válida. PoS usa assinaturas e não é, por si só, uma defesa pós-quântica. <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/" target="_blank" rel="noopener">Ethereum: proof of stake</a>, <a href="https://ethereum.org/developers/docs/consensus-mechanisms/pos/attestations/" target="_blank" rel="noopener">atestação e finalidade</a>.</aside>
+  </section>
+
+  <section class="slide blockchain-lab" id="poh-slide" data-title="Solana: Proof of History não é consenso sozinho" data-act="3">
+    <p class="eyebrow">SOLANA · PROOF OF HISTORY</p><h2>Uma sequência verificável.<br><span class="cyan">Não um relógio de parede.</span></h2>
+    <div class="poh-intro"><p class="intro">Cada saída alimenta o próximo hash. Inserir um evento registra sua posição nessa sequência.</p><div class="poh-badge"><b>PoH</b> ordenação <span>+</span> <b>PoS</b> consenso</div></div>
+    <div class="poh-controls"><label for="poh-event">Evento para registrar<input id="poh-event" value="Alice envia 1 SOL" maxlength="60"></label><button id="poh-next" class="primary">Registrar próximo evento →</button><button id="poh-reset" class="text-button">Reiniciar sequência</button></div>
+    <div id="poh-chain" class="poh-chain" aria-label="Sequência didática de hashes"></div>
+    <div id="poh-status" class="result" role="status">Preparando a sequência…</div>
+    <p class="footnote">SHA-256 real em um modelo simplificado de até 4 eventos. Não implementa o PoH da Solana, não mede tempo real e não valida transações. Sem busca por zeros ou nonce premiado.</p>
+    <aside class="notes">Aqui o tema de tempo é Proof of History da Solana, não Proof of Space and Time da Chia. PoH é uma sequência de hashes dependentes, com eventos inseridos, usada como referência de ordem e passagem de tempo computacional. Não é um timestamp UTC nem prova de que dados de entrada são verdadeiros. Um verificador pode conferir trechos da sequência em paralelo. PoH não substitui o consenso: a rede usa validadores e stake para chegar a acordo. O laboratório usa SHA-256(JSON de [hash anterior, evento]), com a semente SHA-256 de "inicio-poh", apenas para ilustrar dependência sequencial. A implementação real usa muitos passos intermediários e mecanismos adicionais. <a href="https://solana.com/uk/news/proof-of-history--a-clock-for-blockchain" target="_blank" rel="noopener">Solana: Proof of History, a clock for blockchain</a>, <a href="https://solana.com/staking" target="_blank" rel="noopener">staking na Solana</a>.</aside>
   </section>
 
   <section class="slide blockchain-lab" id="networks-slide" data-title="BTC, ETH e SOL: três desenhos de rede" data-act="3">
@@ -268,7 +302,7 @@ liberar(caller):
   </section>
 
   <section class="slide closing" data-title="Segurança, escala e consenso" data-act="4">
-    <img class="background" src="assets/quantum.png" alt=""><div class="closing-shade"></div><div class="closing-content"><p class="eyebrow">ENCERRAMENTO</p><h2>A matemática já<br>mudou a pergunta.<br><span class="cyan">A migração ainda<br>depende de nós.</span></h2><p class="intro">O desafio das blockchains combina segurança,<br>custo de operação e consenso sobre as regras.</p><div class="closing-question">Como proteger os fundos sem tornar<br>a rede inacessível a quem a mantém?</div><button class="secondary" data-goto="32">Fontes e leituras ↗</button></div>
+    <img class="background" src="assets/quantum.png" alt=""><div class="closing-shade"></div><div class="closing-content"><p class="eyebrow">ENCERRAMENTO</p><h2>A matemática já<br>mudou a pergunta.<br><span class="cyan">A migração ainda<br>depende de nós.</span></h2><p class="intro">O desafio das blockchains combina segurança,<br>custo de operação e consenso sobre as regras.</p><div class="closing-question">Como proteger os fundos sem tornar<br>a rede inacessível a quem a mantém?</div><button class="secondary" data-goto="34">Fontes e leituras ↗</button></div>
     <aside class="notes">Retome a pergunta central e abra a discussão. A conclusão não depende de prever o Q-Day. A segurança precisa de alternativas criptográficas, mas sua adoção envolve escala e legitimidade social. Fonte: fechamento do PDF, p. 7.</aside>
   </section>
 
@@ -282,7 +316,7 @@ liberar(caller):
 </main>
 
 <footer class="toolbar">
-  <div class="slide-meta"><span id="slide-current">01</span><span class="muted">/</span><span id="slide-total">32</span><span id="slide-chapter" class="muted">SEMINÁRIO</span></div>
+  <div class="slide-meta"><span id="slide-current">01</span><span class="muted">/</span><span id="slide-total">34</span><span id="slide-chapter" class="muted">SEMINÁRIO</span></div>
   <div class="tools"><button id="motion-toggle" title="Pausar ou retomar animações (M)" aria-label="Pausar animações de blockchain" aria-pressed="false">⏸</button><button id="notes-toggle" title="Notas do apresentador (N)" aria-label="Mostrar notas do apresentador" aria-expanded="false">Notas <kbd>N</kbd></button><button id="help-open" title="Ajuda e atalhos (?)" aria-label="Abrir ajuda">?</button><button id="fullscreen" title="Tela cheia (F)" aria-label="Alternar tela cheia">⛶</button><span class="separator"></span><button id="prev" aria-label="Slide anterior">←</button><button id="next" aria-label="Próximo slide">→</button></div>
 </footer>
 <div class="progress-track"><div id="deck-progress"></div></div>

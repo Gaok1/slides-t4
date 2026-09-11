@@ -1,6 +1,6 @@
 # Criptografia pós-quântica & Blockchain
 
-Abra **apresentacao.html** em um navegador. É a versão portátil e funciona offline, sem instalação. Contém 32 slides em português, imagens incorporadas, notas e demonstrações locais. Somente os links de referência precisam de internet.
+Abra **apresentacao.html** em um navegador. É a versão portátil e funciona offline, sem instalação. Contém 34 slides em português, imagens incorporadas, notas e demonstrações locais. Somente os links de referência precisam de internet.
 
 ## Controles
 
@@ -36,8 +36,10 @@ O arquivo final é uma apresentação **HTML**, não um arquivo `.pptx`.
 O terceiro ato agora inclui fluxo de transações, comparação BTC/ETH/SOL, contratos inteligentes, paralelismo de contas da Solana e riscos quânticos nas três redes.
 
 - **SHA-256:** edite duas entradas UTF-8, compare os hashes e a quantidade real de bits diferentes. Usa Web Crypto nativo, sem enviar dados. Espaços e acentos contam. Limite: 1.000 caracteres por entrada.
-- **Blocos encadeados:** altere dados e veja referências quebradas. Recalcular os elos restaura apenas a coerência local, não consenso, assinaturas ou prova de trabalho.
-- **Nonce / PoW:** busca didática limitada a 8.192 tentativas por clique. Pode ser interrompida e para ao sair do slide. Não minera moedas.
+- **Blocos encadeados (16):** o modo padrão propaga novas referências e hashes aos sucessores. O modo congelado conserva as referências originais e mostra elos quebrados. Cada bloco permite inspecionar o JSON exato usado no SHA-256 e o hash completo. Recalcular restaura apenas a coerência local, não consenso, assinaturas ou prova de trabalho.
+- **Nonce / PoW (17):** escolha manualmente um inteiro de 0 a 4.294.967.295, clique para testar ou incrementar. Hash real, contador de tentativas e média idealizada por dificuldade. Busca automática em ritmo didático ou rápido, limitada a 8.192 tentativas ou 30 segundos por clique. Para ao sair do slide. O tempo inclui pausas e não é benchmark de mineração. Não minera moedas.
+- **Proof of stake (18):** quatro etapas clicáveis explicam garantia, proposta, votos e finalidade, com ressalvas sobre penalidades e regras de consenso.
+- **Proof of History (19):** registre até quatro eventos em uma sequência real de SHA-256. Cada cálculo usa a saída anterior. Modelo didático de dependência e ordem, não implementação do PoH, relógio real ou validação de transações. PoH não substitui o consenso baseado em stake da Solana.
 - **Custódia:** contrato simulado com depósito, confirmação, autorização e proteção contra dupla liberação. Não é código de contrato implantado.
 - **Fundo animado:** blocos recebem dados e propagam referências. Ilustração sem conexão com redes reais, pausável no botão ou com M.
 

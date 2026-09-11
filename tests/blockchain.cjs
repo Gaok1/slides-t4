@@ -42,25 +42,86 @@ const digest = text => createHash('sha256').update(text, 'utf8').digest('hex');
   await go('chain-slide'); await page.waitForFunction(() => !document.querySelector('#chain-data-0').disabled);
   const originalHashes = await page.locator('.current-hash').evaluateAll(nodes => nodes.map(n => n.title));
   assert.equal(originalHashes[0], digest(JSON.stringify([1, '0'.repeat(64), 'Alice envia 10 para Bob'])));
+
   await page.locator('#chain-data-0').fill('Alice envia 100 para Bob');
-  await page.waitForFunction(() => document.querySelectorAll('.bad-link').length === 1);
-  assert.equal(await page.locator('.affected').count(), 1); await fits();
-  await page.locator('#chain-relink').click(); await page.waitForFunction(() => !document.querySelector('#chain-relink').disabled && document.querySelectorAll('.bad-link').length === 0);
-  assert.match(await page.locator('#chain-status').innerText(), /não representa aprovação/); await fits();
+  await page.waitForFunction(() => document.querySelectorAll('.modified').length === 3);
+  assert.equal(await page.locator('.bad-link').count(), 0); await fits();
   const changedHashes = await page.locator('.current-hash').evaluateAll(nodes => nodes.map(n => n.title));
   assert(changedHashes.every((h, i) => h !== originalHashes[i]));
-  await page.locator('#chain-reset').click(); await page.waitForFunction(() => !document.querySelector('#chain-reset').disabled);
-  assert.deepEqual(await page.locator('.current-hash').evaluateAll(nodes => nodes.map(n => n.title)), originalHashes);
-  await page.locator('#chain-data-2').fill('Alteração do último bloco'); await page.waitForFunction(() => document.querySelectorAll('.modified').length === 1); assert.equal(await page.locator('.bad-link').count(), 0);
-  await go('pow-slide'); await page.locator('#pow-nonce').fill('-1'); await page.waitForFunction(() => document.querySelector('#pow-status').textContent.includes('inteiro'));
-  await page.locator('#pow-nonce').fill('0'); await page.locator('#pow-difficulty').selectOption('2');
-  await page.locator('#pow-mine').click(); await page.waitForFunction(() => document.querySelector('#pow-status').textContent.startsWith('Encontrado'), { timeout: 20000 });
+  for (let i = 0; i < 3; i++) {
+    const expected = digest(JSON.stringify([i + 1, i ? changedHashes[i - 1] : '0'.repeat(64), await page.locator('#chain-data-' + i).inputValue()]));
+    assert.equal(changedHashes[i], expected);
+  }
+  await page.locator('.inspect-block').nth(1).click();
+  assert(await page.locator('#chain-payload').evaluate(e => e.open));
+  assert.equal(digest(await page.locator('#payload-json').innerText()), await page.locator('#payload-hash').innerText());
+  await page.keyboard.press('Escape');
+  await page.locator('[data-chain-mode=frozen]').click();
+  await page.waitForFunction(() => document.querySelectorAll('.bad-link').length === 1);
+  assert.equal(await page.locator('.affected').count(), 1);
+  assert.deepEqual(await page.locator('.current-hash').evaluateAll(n => n.map(e => e.title).slice(1)), originalHashes.slice(1));
+  await page.locator('[data-chain-mode=cascade]').click();
+  await page.waitForFunction(() => document.querySelectorAll('.modified').length === 3);
+  await page.locator('#chain-reset').click();
+  await page.waitForFunction(() => document.querySelectorAll('.modified').length === 0);
+  assert.deepEqual(await page.locator('.current-hash').evaluateAll(n => n.map(e => e.title)), originalHashes);
+  await page.locator('#chain-data-1').fill('Olá 🔐 <img src=x>');
+  await page.waitForFunction(() => document.querySelectorAll('.modified').length === 2);
+  assert.equal(await page.locator('.current-hash').first().innerText(), originalHashes[0]);
+  await page.locator('.inspect-block').nth(1).click();
+  assert.equal(await page.locator('#payload-json img').count(), 0);
+  assert.equal(digest(await page.locator('#payload-json').innerText()), await page.locator('#payload-hash').innerText());
+  await page.keyboard.press('Escape');
+  await page.locator('#chain-reset').click(); await page.waitForFunction(() => document.querySelectorAll('.modified').length === 0);
+  await page.locator('#chain-data-2').fill('Último'); await page.waitForFunction(() => document.querySelectorAll('.modified').length === 1);
+  await go('pow-slide');
+  for (const invalid of ['-1', '1.5', '4294967296', '']) {
+    await page.locator('#pow-nonce').fill(invalid); await page.locator('#pow-test').click();
+    assert.match(await page.locator('#pow-status').innerText(), /inteiro/);
+    assert.equal(await page.locator('#pow-attempts').innerText(), '0');
+  }
+  await page.locator('#pow-nonce').fill('42');
+  assert.match(await page.locator('#pow-hash').innerText(), /Clique em testar/);
+  await page.locator('#pow-test').click();
+  await page.waitForFunction(expected => document.querySelector('#pow-hash').textContent === expected, digest(JSON.stringify(['Bloco de demonstração', 42])));
+  await page.locator('#pow-test').click(); await page.waitForFunction(() => document.querySelector('#pow-attempts').textContent === '2');
+  await page.locator('#pow-increment').click(); await page.waitForFunction(expected => document.querySelector('#pow-hash').textContent === expected, digest(JSON.stringify(['Bloco de demonstração', 43])));
+  await page.locator('#pow-nonce').fill('4294967295'); await page.locator('#pow-increment').click(); assert.match(await page.locator('#pow-status').innerText(), /Limite/);
+  await page.locator('#pow-clear').click(); assert.equal(await page.locator('#pow-attempts').innerText(), '0');
+  await page.locator('#pow-nonce').fill('0'); await page.locator('#pow-difficulty').selectOption('2'); await page.locator('#pow-pace').selectOption('0');
+  await page.locator('#pow-mine').click(); await page.waitForFunction(() => document.querySelector('#pow-status').textContent.startsWith('Encontrado'), null, { timeout: 20000 });
   const nonce = Number(await page.locator('#pow-nonce').inputValue());
   const powHash = digest(JSON.stringify(['Bloco de demonstração', nonce]));
   assert(powHash.startsWith('00')); assert.equal(await page.locator('#pow-hash').innerText(), powHash); await fits();
-  await page.locator('#pow-data').fill('Dado adulterado'); await page.waitForFunction(expected => document.querySelector('#pow-hash').textContent === expected, digest(JSON.stringify(['Dado adulterado', nonce])));
+  await page.locator('#pow-data').fill('Dado adulterado'); assert.equal(await page.locator('#pow-attempts').innerText(), '0');
+  await page.locator('#pow-test').click(); await page.waitForFunction(expected => document.querySelector('#pow-hash').textContent === expected, digest(JSON.stringify(['Dado adulterado', nonce])));
+  await page.locator('#pow-difficulty').selectOption('4'); await page.locator('#pow-nonce').fill('0'); await page.locator('#pow-pace').selectOption('250');
   await page.locator('#pow-mine').click(); await page.locator('#pow-stop').click(); assert.match(await page.locator('#pow-status').innerText(), /interrompida/);
-  await page.locator('#pow-mine').click(); await go('networks-slide'); assert(await page.locator('#pow-mine').isEnabled());
+  const stoppedCount = await page.locator('#pow-attempts').innerText(); await page.waitForTimeout(350); assert.equal(await page.locator('#pow-attempts').innerText(), stoppedCount);
+  let capData = '', candidate = 0;
+  do { capData = 'Limite didático ' + candidate++; } while (Array.from({ length: 8192 }, (_, n) => digest(JSON.stringify([capData, n]))).some(h => h.startsWith('0000')));
+  await page.locator('#pow-data').fill(capData); await page.locator('#pow-nonce').fill('0'); await page.locator('#pow-pace').selectOption('0');
+  await page.locator('#pow-mine').click(); await page.waitForFunction(() => document.querySelector('#pow-mine').disabled === false, null, { timeout: 35000 });
+  assert.equal((await page.locator('#pow-attempts').innerText()).replace(/\D/g, ''), '8192');
+  assert.match(await page.locator('#pow-status').innerText(), /Limite/);
+  await page.locator('#pow-nonce').fill('4294967295'); await page.locator('#pow-clear').click();
+  await page.locator('#pow-mine').click(); await page.waitForFunction(() => !document.querySelector('#pow-mine').disabled);
+  assert.equal(await page.locator('#pow-attempts').innerText(), '1');
+  await page.locator('#pow-nonce').fill('0'); await page.locator('#pow-pace').selectOption('250');
+  await page.locator('#pow-mine').click(); await go('pos-slide'); assert(await page.locator('#pow-mine').isEnabled());
+  for (let i = 0; i < 4; i++) { await page.locator('[data-pos="' + i + '"]').click(); assert.equal(await page.locator('#pos-number').innerText(), '0' + (i + 1)); await fits(); }
+  await go('poh-slide'); await page.waitForFunction(() => !document.querySelector('#poh-next').disabled);
+  let previous = digest('inicio-poh');
+  for (let i = 1; i <= 4; i++) {
+    const event = i === 2 ? 'Olá <img src=x> 🔐' : 'Alice envia 1 SOL';
+    await page.locator('#poh-event').fill(event); await page.locator('#poh-next').click();
+    previous = digest(JSON.stringify([previous, event]));
+    await page.waitForFunction(expected => [...document.querySelectorAll('.poh-node.recorded code')].at(-1).title === expected, previous);
+    assert.equal(await page.locator('#poh-chain img').count(), 0); await fits();
+  }
+  assert(await page.locator('#poh-next').isDisabled()); await page.locator('#poh-reset').click();
+  await page.waitForFunction(() => document.querySelectorAll('.poh-node.recorded').length === 1);
+  await go('networks-slide');
   for (const network of ['btc', 'eth', 'sol']) { await page.locator(`[data-network=${network}]`).click(); assert.match(await page.locator('#network-detail').innerText(), new RegExp(network.toUpperCase())); await fits(); }
   await go('contract-slide'); await page.locator('#contract-release').click(); assert.match(await page.locator('#contract-result').innerText(), /Falta o depósito/);
   await page.locator('#contract-deposit').click(); await page.locator('#contract-release').click(); assert.match(await page.locator('#contract-result').innerText(), /Entrega ainda/);
