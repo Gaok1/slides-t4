@@ -111,19 +111,19 @@ function parseHash() { const n = Number(location.hash.slice(1)); return Number.i
 
 // Demos intentionally use small public constants, never real keys or wallet data.
 $('#dh-reveal').addEventListener('click', () => {
-  $('#dh-result').innerHTML = '<strong class="cyan">Segredo compartilhado: 2</strong><div class="dh-calcs"><span>Alice: 19⁶ mod 23 = 2</span><span>Bob: 8¹⁵ mod 23 = 2</span></div>';
-  $('#dh-reveal').textContent = 'Segredo revelado: 2';
+  $('#dh-result').innerHTML = '<strong class="cyan">Os dois chegaram à mesma chave: 2</strong><div class="dh-calcs"><span>Alice combina 19 com seu segredo 6 → 2</span><span>Bob combina 8 com seu segredo 15 → 2</span></div>';
+  $('#dh-reveal').textContent = 'Chave compartilhada: 2';
 });
 let shorStep = 0;
 const shorSteps = [
-  ['01 / OBSERVAR','A sequência volta ao 1.','Quantas posições separam as duas ocorrências?'],
-  ['02 / ENCONTRAR O PERÍODO','r = 4','A cada quatro expoentes, os valores se repetem.'],
-  ['03 / CALCULAR','2ʳᐟ² = 2² = 4','Agora usamos 4 − 1 e 4 + 1 no máximo divisor comum.'],
-  ['04 / RECUPERAR OS FATORES','15 = 3 × 5','MDC(3, 15) = 3 · MDC(5, 15) = 5']
+  ['01 / ESCOLHER','N = 15 e auxiliar a = 2','2 não divide 15; agora observamos os restos das potências.'],
+  ['02 / GERAR A SEQUÊNCIA','1 → 2 → 4 → 8 → 1','São os restos de 2ˣ dividido por 15. O valor 1 apareceu novamente.'],
+  ['03 / ACHAR O PERÍODO','r = 4','Do primeiro 1 ao segundo, avançamos quatro posições. Essa é a repetição procurada.'],
+  ['04 / RECUPERAR OS FATORES','15 = 3 × 5','2^(4/2) = 4; MDC(4−1, 15) = 3 e MDC(4+1, 15) = 5.']
 ];
 function renderShor() {
   const step = shorSteps[shorStep];
-  $('#shor-counter').textContent = `${shorStep} / 3`;
+  $('#shor-counter').textContent = `PASSO ${shorStep + 1} / 4`;
   $('#shor-answer').innerHTML = `<span class="mono cyan">${step[0]}</span><h3>${step[1]}</h3><p>${step[2]}</p>`;
   $('#period-row').classList.toggle('revealed', shorStep > 0);
   $('#shor-step').disabled = shorStep === 3;
@@ -215,9 +215,9 @@ $$('[data-decision]').forEach(button => button.addEventListener('click', () => {
 }));
 
 const quiz = [
-  { question: 'Qual é a ameaça direta de Shor às carteiras com chave pública exposta?', options: ['Apagar todos os blocos antigos.', 'Recuperar a chave privada e forjar assinaturas.', 'Dobrar automaticamente a taxa de rede.'], answer: 1, explanation: 'Shor ameaça o logaritmo discreto das curvas elípticas. O ataque pressupõe hardware quântico suficientemente capaz.' },
-  { question: 'Onde algoritmos pós-quânticos podem funcionar?', options: ['Em computadores e smartphones clássicos.', 'Somente em processadores quânticos.', 'Somente dentro de uma blockchain.'], answer: 0, explanation: 'PQC usa outros problemas matemáticos e pode executar em hardware comum. Seu objetivo é resistir também a adversários quânticos.' },
-  { question: 'Uma BIP em rascunho significa que a rede já adotou a mudança?', options: ['Sim, a publicação ativa a regra.', 'Sim, depois de um número fixo de dias.', 'Não. Discussão, implementação e ativação são etapas distintas.'], answer: 2, explanation: 'Proposta publicada não implica consenso ou ativação. A coordenação da migração faz parte do desafio.' }
+  { question: 'Ao acessar um servidor web por HTTPS, quais serviços de segurança são oferecidos ao usuário em relação ao HTTP?', options: ['Autenticação do servidor e controle de acesso do cliente.', 'Autenticação do cliente e controle da velocidade.', 'Autenticação da rede e proteção contra vírus.', 'Autenticação do servidor e confidencialidade da transmissão.', 'Autenticação do cliente e temporização das ações.'], answer: 3, explanation: 'HTTPS autentica o servidor por certificado e protege a confidencialidade do canal. Fonte: ENADE Computação 2008, questão 42, gabarito D.' },
+  { question: 'Para o 3DES manter compatibilidade e decifrar uma mensagem cifrada com DES, qual composição deve ser usada?', options: ['D(C(D(m, ka), kb), kc), com ka ≠ kb ≠ kc.', 'D(D(D(m, ka), kb), kc), com ka ≠ kb ≠ kc.', 'D(D(D(m, ka), kb), kc), com ka = kb = kc.', 'D(C(D(m, ka), kb), kc), com ka = kb = kc.', 'D(D(C(m, ka), kb), kc), com ka = kb = kc.'], answer: 3, explanation: 'Com ka = kb = kc, a operação central C desfaz a primeira D; resta uma decifração DES. Fonte: ENADE Engenharia de Computação 2019, questão 18, gabarito D.' },
+  { question: 'Segurança de mensagens: quais afirmações estão corretas?\nI. Uma chave pública autenticada ajuda a verificar o remetente.\nII. Um vetor de inicialização variável dificulta padrões e repetições.\nIII. AES usa um par de chaves diferentes.\nIV. SHA-256 pode ajudar a verificar integridade.', options: ['I e IV.', 'II e III.', 'III e IV.', 'I, II e III.', 'I, II e IV.'], answer: 4, explanation: 'AES é simétrico; por isso a afirmação III está errada. Fonte: ENADE Ciência da Computação 2021, questão 24, gabarito E (enunciado resumido).' }
 ];
 let quizIndex = 0, quizScore = 0, quizAnswered = false;
 function renderQuiz() {

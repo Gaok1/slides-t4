@@ -1,6 +1,8 @@
 # Criptografia pós-quântica & Blockchain
 
-Abra **apresentacao.html** em um navegador. É a versão portátil e funciona offline, sem instalação. Contém 34 slides em português, imagens incorporadas, notas e demonstrações locais. Somente os links de referência precisam de internet.
+Abra **index.html** em um navegador. Esta é a versão atual da apresentação, com 44 slides, tema branco minimalista, notas e demonstrações locais. Somente os links de referência precisam de internet.
+
+O arquivo `ROTEIRO_80_MIN.md` divide a apresentação entre três pessoas e reserva 2 minutos de margem dentro da duração total de 1h20.
 
 ## Controles
 
@@ -15,7 +17,7 @@ As notas aparecem na própria tela. Mantenha-as fechadas ao projetar para a plat
 
 ## Edição
 
-Edite `index.html`, `style.css`, `app.js`, `blockchain.css` e `blockchain.js`. Execute `node build.cjs` para atualizar o HTML portátil. Não há dependências de execução, serviços externos, telemetria ou chaves reais nas demonstrações.
+Edite `index.html`, `style.css`, `theme-light.css`, `app.js`, `blockchain.css` e `blockchain.js`. O arquivo `index.html` é a fonte principal e deve ser aberto diretamente. Não há dependências de execução, serviços externos, telemetria ou chaves reais nas demonstrações.
 
 Teste: `node tests/check.cjs`, com Playwright disponível via NODE_PATH ou pelo runtime incluído no Codex. A checagem usa navegador headless e valida navegação, interações e layout em desktop e celular.
 
