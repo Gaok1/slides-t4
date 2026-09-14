@@ -279,3 +279,39 @@ $$('.stake-input').forEach(input => input.addEventListener('input', () => {
   renderStake('Pesos atualizados.');
 }));
 renderStake('Pronto para sortear.');
+
+// Proof of History: each tick hashes the previous state; transactions can enter the sequence.
+const pohTransactions = ['Alice → Bob · 2 SOL', 'Swap SOL / USDC', 'Carol → Davi · 0,4 SOL', 'Voto do validador'];
+let pohTick = 0, pohHash = '0'.repeat(64), pohTxIndex = 0, pohPending = false, pohRunning = false, pohPaused = false, pohTimer = 0, pohRevision = 0;
+async function stepPoh(revision) {
+  if (!pohRunning || revision !== pohRevision) return;
+  const transaction = pohPending || pohTick % 3 === 2 ? pohTransactions[pohTxIndex++ % pohTransactions.length] : '';
+  pohPending = false;
+  const next = await sha256(transaction ? `${pohHash}|${transaction}` : pohHash);
+  if (!pohRunning || revision !== pohRevision) return;
+  pohHash = next; pohTick++;
+  $('#poh-tick').textContent = String(pohTick).padStart(6, '0');
+  $('#poh-hash').textContent = shortHash(pohHash);
+  const row = document.createElement('div');
+  row.className = transaction ? 'has-tx' : '';
+  row.innerHTML = `<b>#${String(pohTick).padStart(6, '0')}</b><code>${shortHash(pohHash)}</code><span>${transaction}</span>`;
+  $('#poh-stream').prepend(row);
+  while ($('#poh-stream').children.length > 4) $('#poh-stream').lastElementChild.remove();
+  pohTimer = setTimeout(() => stepPoh(revision), 550);
+}
+function startPoh() {
+  if (pohRunning || pohPaused || !$('#poh-slide').classList.contains('active')) return;
+  pohRunning = true; stepPoh(++pohRevision);
+}
+function stopPoh() {
+  pohRunning = false; clearTimeout(pohTimer); pohRevision++;
+}
+$('#poh-add').addEventListener('click', () => { pohPending = true; });
+$('#poh-toggle').addEventListener('click', () => {
+  pohPaused = !pohPaused;
+  $('#poh-toggle').textContent = pohPaused ? 'Retomar' : 'Pausar';
+  $('#poh-toggle').setAttribute('aria-pressed', String(pohPaused));
+  if (pohPaused) stopPoh(); else startPoh();
+});
+document.addEventListener('slidechange', () => { if ($('#poh-slide').classList.contains('active')) startPoh(); else stopPoh(); });
+startPoh();
