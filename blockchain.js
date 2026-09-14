@@ -281,17 +281,21 @@ $$('.stake-input').forEach(input => input.addEventListener('input', () => {
 renderStake('Pronto para sortear.');
 
 // Proof of History: each tick hashes the previous state; transactions can enter the sequence.
-const pohTransactions = ['Alice → Bob · 2 SOL', 'Swap SOL / USDC', 'Carol → Davi · 0,4 SOL', 'Voto do validador'];
-let pohTick = 0, pohHash = '0'.repeat(64), pohTxIndex = 0, pohPending = false, pohRunning = false, pohPaused = false, pohTimer = 0, pohRevision = 0;
+let pohTick = 0, pohHash = '0'.repeat(64), pohPending = '', pohRunning = false, pohPaused = false, pohTimer = 0, pohRevision = 0;
 async function stepPoh(revision) {
   if (!pohRunning || revision !== pohRevision) return;
-  const transaction = pohPending || pohTick % 3 === 2 ? pohTransactions[pohTxIndex++ % pohTransactions.length] : '';
-  pohPending = false;
+  const transaction = pohPending, previous = pohHash;
+  pohPending = '';
   const next = await sha256(transaction ? `${pohHash}|${transaction}` : pohHash);
   if (!pohRunning || revision !== pohRevision) return;
   pohHash = next; pohTick++;
   $('#poh-tick').textContent = String(pohTick).padStart(6, '0');
-  $('#poh-hash').textContent = shortHash(pohHash);
+  if (transaction) {
+    $('#poh-prev').textContent = shortHash(previous);
+    $('#poh-tx-used').textContent = transaction;
+    $('#poh-hash').textContent = shortHash(pohHash);
+  }
+  $('#poh-add').textContent = 'Registrar'; $('#poh-add').classList.remove('poh-add-queued');
   const row = document.createElement('div');
   row.className = transaction ? 'has-tx' : '';
   row.innerHTML = `<b>#${String(pohTick).padStart(6, '0')}</b><code>${shortHash(pohHash)}</code><span>${transaction}</span>`;
@@ -306,7 +310,12 @@ function startPoh() {
 function stopPoh() {
   pohRunning = false; clearTimeout(pohTimer); pohRevision++;
 }
-$('#poh-add').addEventListener('click', () => { pohPending = true; });
+$('#poh-add').addEventListener('click', () => {
+  const transaction = $('#poh-tx').value.trim();
+  if (!transaction) return;
+  pohPending = transaction;
+  $('#poh-add').textContent = 'Agendada'; $('#poh-add').classList.add('poh-add-queued');
+});
 $('#poh-toggle').addEventListener('click', () => {
   pohPaused = !pohPaused;
   $('#poh-toggle').textContent = pohPaused ? 'Retomar' : 'Pausar';
