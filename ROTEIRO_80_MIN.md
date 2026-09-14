@@ -34,10 +34,11 @@ Passagem sugerida para a blockchain: "As alternativas existem, mas têm tamanhos
 
 ## Pessoa 3 — 24 min, somente blockchain
 
-- Slides 23‒25 (5 min): ciclo de uma transação, SHA-256 e encadeamento.
-- Slides 26‒28 (5 min): PoW, PoS e Proof of History.
-- Slides 29‒32 (6 min): comparação BTC/ETH/SOL, contratos, paralelismo e risco de Shor.
-- Slides 33‒37 (8 min): exposição de chave, custo de dados, BIP 360, BIP 361 e Ethereum.
+- Slides 23‒24 (4 min): o problema do gasto duplo e a linha do tempo das peças, de 1991 a 2022.
+- Slides 25‒27 (7 min): os três laboratórios de hash, elo e prova de trabalho cronometrada.
+- Slides 28‒29 (3 min): o ciclo completo de uma transação e o sorteio ponderado por stake.
+- Slides 30‒31 (3 min): comparação BTC/ETH/SOL e contrato em custódia.
+- Slides 32‒37 (7 min): risco de Shor nas três redes, exposição de chave, custo de dados, BIP 360, BIP 361 e Ethereum.
 
 Passagem sugerida: "A blockchain não muda a matemática da ameaça; ela multiplica o custo e a coordenação da resposta. A Pessoa 2 fecha com as opções de transição."
 

@@ -34,28 +34,6 @@ document.addEventListener('keydown', event => {
 });
 syncMotion();
 
-const flowSteps = [
-  ['AUTORIZAÇÃO', 'A carteira assina a intenção.', 'A chave privada produz uma assinatura. Ela não precisa sair da carteira para a rede.', 'aguardando'],
-  ['PROPAGAÇÃO', 'A transação circula entre nós.', 'Os participantes recebem e encaminham a mensagem. A topologia e as filas variam entre redes.', 'recebendo'],
-  ['VALIDAÇÃO', 'As regras decidem se o gasto é válido.', 'Assinatura, fundos disponíveis e condições de execução precisam passar nas verificações.', 'verificando'],
-  ['INCLUSÃO', 'Um produtor propõe o próximo bloco.', 'Mineradores ou validadores incluem transações conforme o protocolo. Outros nós verificam o resultado.', 'bloco proposto'],
-  ['CONFIRMAÇÃO', 'A rede consolida uma versão do histórico.', 'A confiança na inclusão cresce conforme as regras de consenso e finalidade de cada rede.', 'confirmado']
-];
-let flowIndex = 0;
-function renderFlow() {
-  const step = flowSteps[flowIndex];
-  ['label', 'title', 'text'].forEach((key, i) => $(`#flow-${key}`).textContent = step[i]);
-  $('#flow-block-state').textContent = step[3];
-  $('#flow-new').classList.toggle('confirmed', flowIndex === 4);
-  $('#flow-new').classList.toggle('building', flowIndex > 0 && flowIndex < 4);
-  $$('[data-flow]').forEach((button, i) => { button.setAttribute('aria-pressed', String(i === flowIndex)); button.classList.toggle('done', i < flowIndex); });
-  $('#flow-next').disabled = flowIndex === 4;
-}
-$$('[data-flow]').forEach(button => button.addEventListener('click', () => { flowIndex = +button.dataset.flow; renderFlow(); }));
-$('#flow-next').addEventListener('click', () => { flowIndex = Math.min(4, flowIndex + 1); renderFlow(); });
-$('#flow-reset').addEventListener('click', () => { flowIndex = 0; renderFlow(); });
-renderFlow();
-
 let hashRevision = 0;
 async function updateHashLab() {
   const revision = ++hashRevision;
@@ -147,16 +125,18 @@ $('#chain-reset').addEventListener('click', () => { $$('.chain-data').forEach((i
   } catch (error) { $('#chain-status').textContent = error.message; }
 })();
 
-let mining = false, miningRevision = 0, powAttempts = 0, powStarted = 0, powElapsed = 0;
-const maxNonce = 4294967295;
+// Proof of work: manual attempts for the audience, timed search for the sense of scale.
+let mining = false, miningRevision = 0, powAttempts = 0, powStarted = 0, powElapsed = 0, powRate = 0;
+const maxNonce = 4294967295, powMaxAttempts = 500000, powMaxMillis = 20000, powBatch = 512;
 function renderPowMetrics() {
   $('#pow-attempts').textContent = fmt(powAttempts);
   $('#pow-elapsed').textContent = `${fmt(powElapsed / 1000, 1)} s`;
+  $('#pow-rate').textContent = powRate ? `${fmt(powRate)} h/s` : '—';
 }
 function setMining(active) {
   mining = active;
   $('#pow-stop').disabled = !active;
-  ['pow-mine','pow-data','pow-nonce','pow-difficulty','pow-test','pow-increment','pow-clear','pow-pace'].forEach(id => document.getElementById(id).disabled = active);
+  ['pow-mine','pow-data','pow-nonce','pow-difficulty','pow-test','pow-increment','pow-clear'].forEach(id => document.getElementById(id).disabled = active);
 }
 function stopMining() {
   if (!mining) return;
@@ -170,7 +150,7 @@ function getNonce() {
 }
 function pendingPow(reset = false) {
   stopMining(); ++miningRevision;
-  if (reset) { powAttempts = 0; powElapsed = 0; }
+  if (reset) { powAttempts = 0; powElapsed = 0; powRate = 0; }
   renderPowMetrics();
   const d = +$('#pow-difficulty').value;
   $('#pow-expected').textContent = fmt(16 ** d);
@@ -203,25 +183,35 @@ $('#pow-mine').addEventListener('click', async () => {
   if (mining) return;
   let start;
   try { start = getNonce(); } catch (error) { $('#pow-status').textContent = error.message; return; }
-  const data = $('#pow-data').value, prefix = '0'.repeat(+$('#pow-difficulty').value), delay = +$('#pow-pace').value, revision = ++miningRevision;
-  powStarted = performance.now(); powElapsed = 0; setMining(true);
+  const data = $('#pow-data').value, prefix = '0'.repeat(+$('#pow-difficulty').value), revision = ++miningRevision;
+  const available = maxNonce - start + 1;
+  let searched = 0;
+  powStarted = performance.now(); powElapsed = 0; powRate = 0; setMining(true);
   try {
-    for (let tries = 1; tries <= 8192 && start + tries - 1 <= maxNonce && performance.now() - powStarted < 30000; tries++) {
-      const nonce = start + tries - 1, hash = await sha256(JSON.stringify([data, nonce]));
+    while (searched < available && searched < powMaxAttempts && performance.now() - powStarted < powMaxMillis) {
+      const size = Math.min(powBatch, available - searched, powMaxAttempts - searched);
+      const first = start + searched;
+      // One batch per turn of the event loop: the clock stays honest and the page stays responsive.
+      const hashes = await Promise.all(Array.from({ length: size }, (_, k) => sha256(JSON.stringify([data, first + k]))));
       if (revision !== miningRevision) return;
-      powAttempts++; powElapsed = performance.now() - powStarted;
-      $('#pow-nonce').value = nonce; $('#pow-hash').textContent = hash; renderPowMetrics();
-      if (hash.startsWith(prefix)) {
+      const hit = hashes.findIndex(hash => hash.startsWith(prefix));
+      const shown = hit === -1 ? size - 1 : hit;
+      searched += hit === -1 ? size : hit + 1;
+      powAttempts += hit === -1 ? size : hit + 1;
+      powElapsed = performance.now() - powStarted;
+      powRate = powElapsed > 0 ? Math.round(searched / (powElapsed / 1000)) : 0;
+      $('#pow-nonce').value = first + shown; $('#pow-hash').textContent = hashes[shown]; renderPowMetrics();
+      if (hit !== -1) {
         $('#pow-status').classList.remove('warn');
-        $('#pow-status').textContent = `Encontrado: nonce ${fmt(nonce)} em ${fmt(tries)} tentativas nesta busca. Tempo inclui pausas didáticas.`;
+        $('#pow-status').textContent = `Encontrado: nonce ${fmt(first + hit)} em ${fmt(searched)} tentativas e ${fmt(powElapsed / 1000, 1)} s. Conferir este resultado custa um único hash.`;
         return;
       }
       $('#pow-status').classList.add('warn');
-      $('#pow-status').textContent = `${fmt(tries)} tentativas nesta busca. Ainda sem o prefixo ${prefix}.`;
-      if (delay || tries % 32 === 0) await new Promise(resolve => setTimeout(resolve, delay));
+      $('#pow-status').textContent = `${fmt(searched)} tentativas nesta busca, ${fmt(powElapsed / 1000, 1)} s. Ainda sem o prefixo ${prefix}.`;
+      await new Promise(resolve => setTimeout(resolve));
       if (revision !== miningRevision) return;
     }
-    $('#pow-status').textContent = 'Limite de 8.192 tentativas, 30 s ou faixa do nonce atingido. Sem garantia de encontrar uma solução.';
+    $('#pow-status').textContent = `Parou em ${fmt(searched)} tentativas: limite de 500.000 tentativas, 20 s ou fim da faixa do nonce. Não há garantia de encontrar uma solução.`;
   } catch (error) { if (revision === miningRevision) $('#pow-status').textContent = error.message; }
   finally { if (revision === miningRevision) { powElapsed = performance.now() - powStarted; setMining(false); renderPowMetrics(); } }
 });
@@ -232,16 +222,54 @@ $('#pow-difficulty').addEventListener('change', () => pendingPow(true));
 document.addEventListener('slidechange', () => { if (!$('#pow-slide').classList.contains('active')) stopMining(); });
 pendingPow(true);
 
-const networkDetails = {
-  btc: 'BTC: uma transação consome saídas anteriores e cria novas saídas. Scripts definem quem pode gastar e sob quais condições, como múltiplas assinaturas ou bloqueios de tempo.',
-  eth: 'ETH: uma transação pode chamar um contrato na EVM e alterar seu estado. Gas mede o trabalho de execução e participa do custo da operação.',
-  sol: 'SOL: transações reúnem instruções para programs e declaram contas envolvidas. Proof of History ajuda na ordenação temporal; não substitui o consenso baseado em stake.'
-};
-$$('[data-network]').forEach(button => button.addEventListener('click', () => {
-  $$('[data-network]').forEach(b => b.setAttribute('aria-pressed', String(b === button)));
-  $('#network-detail').textContent = networkDetails[button.dataset.network];
+// Proof of stake: a weighted lottery, so the share of turns can be compared to the share of stake.
+const stakeNames = ['Ana', 'Bruno', 'Carla', 'Davi'];
+const stakeRows = $$('#stake-grid .stake-row');
+let stakeTurns = stakeNames.map(() => 0);
+const stakeWeights = () => $$('.stake-input').map(input => Number(input.value));
+const stakeTotal = weights => weights.reduce((sum, weight) => sum + weight, 0);
+const stakeRounds = () => stakeTurns.reduce((sum, turns) => sum + turns, 0);
+function renderStake(message, picked = -1, failed = false) {
+  const weights = stakeWeights(), total = stakeTotal(weights), rounds = stakeRounds();
+  stakeRows.forEach((row, i) => {
+    $('.stake-share', row).textContent = total ? `${fmt(weights[i] / total * 100)}%` : '0%';
+    $('.stake-turns', row).textContent = rounds ? `${fmt(stakeTurns[i] / rounds * 100)}%` : '—';
+    row.classList.toggle('picked', i === picked);
+  });
+  $('#stake-result').classList.toggle('warn', failed);
+  $('#stake-result').textContent = message;
+}
+function drawProposer() {
+  const weights = stakeWeights(), total = stakeTotal(weights);
+  if (!total) return -1;
+  let ticket = Math.random() * total;
+  return weights.findIndex(weight => (ticket -= weight) < 0);
+}
+function drawRounds(times) {
+  let picked = -1;
+  for (let i = 0; i < times; i++) {
+    picked = drawProposer();
+    if (picked < 0) return -1;
+    stakeTurns[picked]++;
+  }
+  return picked;
+}
+$('#stake-draw').addEventListener('click', () => {
+  const picked = drawRounds(1);
+  if (picked < 0) { renderStake('Sem stake não há sorteio: distribua algum capital entre os validadores.', -1, true); return; }
+  renderStake(`${stakeNames[picked]} propõe o bloco desta rodada. Total de rodadas: ${fmt(stakeRounds())}. Propor não é aprovar: os outros validadores conferem as regras antes de aceitar.`, picked);
+});
+$('#stake-run').addEventListener('click', () => {
+  if (drawRounds(200) < 0) { renderStake('Sem stake não há sorteio: distribua algum capital entre os validadores.', -1, true); return; }
+  const weights = stakeWeights(), total = stakeTotal(weights), rounds = stakeRounds(), lead = weights.indexOf(Math.max(...weights));
+  renderStake(`${fmt(rounds)} rodadas sorteadas. ${stakeNames[lead]} tem ${fmt(weights[lead] / total * 100)}% do stake e ficou com ${fmt(stakeTurns[lead] / rounds * 100)}% dos turnos: a proporção se aproxima no agregado, e nenhuma rodada isolada é garantida.`);
+});
+$('#stake-reset').addEventListener('click', () => { stakeTurns = stakeNames.map(() => 0); renderStake('Contagem zerada. Ajuste os stakes e sorteie de novo.'); });
+$$('.stake-input').forEach(input => input.addEventListener('input', () => {
+  stakeTurns = stakeNames.map(() => 0);
+  renderStake('Stake alterado: a contagem de turnos foi zerada, porque os pesos do sorteio mudaram.');
 }));
-$('#network-detail').textContent = networkDetails.btc;
+renderStake('Ajuste os stakes e sorteie. Nenhum turno é garantido.');
 
 let escrow = { deposited: false, delivered: false, released: false };
 function renderEscrow(message, failed = false) {
@@ -270,66 +298,3 @@ $('#contract-release').addEventListener('click', () => {
   escrow.released = true; renderEscrow('Executada: 10 unidades transferidas ao vendedor. Custódia encerrada.');
 });
 $('#contract-reset').addEventListener('click', () => { escrow = { deposited: false, delivered: false, released: false }; $('#contract-caller').value = 'buyer'; renderEscrow('Depósito: 0. Entrega: não confirmada.'); });
-
-function renderParallel(conflict) {
-  $('#parallel-lanes').classList.toggle('conflict', conflict);
-  $('#parallel-account').textContent = `Grava na conta ${conflict ? 'X' : 'Y'}`;
-  $('#parallel-result').classList.toggle('warn', conflict);
-  $('#parallel-result').textContent = conflict ? 'As duas transações escrevem em X. O acesso precisa ser ordenado, evitando escritas conflitantes.' : 'A escreve em X e B escreve em Y. Sem outras dependências, ambas podem executar em paralelo.';
-  $$('[data-conflict]').forEach(button => button.setAttribute('aria-pressed', String((button.dataset.conflict === 'yes') === conflict)));
-}
-$$('[data-conflict]').forEach(button => button.addEventListener('click', () => renderParallel(button.dataset.conflict === 'yes')));
-renderParallel(false);
-
-const posSteps = [
-  ['Uma garantia econômica', 'Validadores vinculam capital ao protocolo. No Ethereum, participação correta pode gerar recompensas, ausência pode gerar penalidades e infrações específicas podem causar slashing.'],
-  ['Propor não é decidir sozinho', 'O protocolo seleciona um proponente, que organiza transações em um bloco. Outros participantes ainda precisam verificar as regras e o resultado da execução.'],
-  ['Validadores conferem e atestam', 'Votos são ponderados pelo stake, não apenas pelo número de pessoas. Eles sinalizam a visão dos validadores sobre blocos e checkpoints. Stake não autoriza gastos inválidos.'],
-  ['Finalidade depende das regras', 'No Ethereum, supermaiorias de stake e regras entre épocas consolidam checkpoints. Finalidade não é um simples clique de aprovação. Reverter esse acordo implica graves falhas ou violações do protocolo.']
-];
-function renderPos(index) {
-  $('#pos-number').textContent = String(index + 1).padStart(2, '0');
-  $('#pos-title').textContent = posSteps[index][0]; $('#pos-detail').textContent = posSteps[index][1];
-  $$('[data-pos]').forEach(button => button.setAttribute('aria-pressed', String(+button.dataset.pos === index)));
-}
-$$('[data-pos]').forEach(button => button.addEventListener('click', () => renderPos(+button.dataset.pos)));
-renderPos(0);
-
-let pohEntries = [], pohRevision = 0;
-function renderPoh() {
-  const container = $('#poh-chain'); container.replaceChildren();
-  for (let i = 0; i < 5; i++) {
-    const entry = pohEntries[i], card = document.createElement('div');
-    card.className = `poh-node${entry ? ' recorded' : ''}`;
-    const label = document.createElement('span'), event = document.createElement('b'), hash = document.createElement('code');
-    label.textContent = i ? `PASSO 0${i}` : 'SEMENTE · H₀';
-    event.textContent = entry ? entry.event : 'Próximo evento';
-    hash.textContent = entry ? shortHash(entry.hash) : 'H(anterior, evento)';
-    hash.title = entry ? entry.hash : '';
-    card.append(label, event, hash); container.append(card);
-  }
-  $('#poh-next').disabled = pohEntries.length === 0 || pohEntries.length === 5;
-}
-async function resetPoh() {
-  const revision = ++pohRevision;
-  pohEntries = []; renderPoh();
-  try {
-    const hash = await sha256('inicio-poh');
-    if (revision !== pohRevision) return;
-    pohEntries = [{ event: 'Início da sequência', hash }]; renderPoh();
-    $('#poh-status').textContent = 'A semente inicia a sequência. Digite um evento e registre: o próximo cálculo precisa do hash anterior.';
-  } catch (error) { if (revision === pohRevision) $('#poh-status').textContent = error.message; }
-}
-$('#poh-next').addEventListener('click', async () => {
-  if (!pohEntries.length || pohEntries.length >= 5) return;
-  const revision = ++pohRevision, event = $('#poh-event').value;
-  $('#poh-next').disabled = true;
-  try {
-    const hash = await sha256(JSON.stringify([pohEntries.at(-1).hash, event]));
-    if (revision !== pohRevision) return;
-    pohEntries.push({ event: event || '(evento vazio)', hash }); renderPoh();
-    $('#poh-status').textContent = `Evento ${pohEntries.length - 1} registrado. Mesmo repetindo o texto, a entrada muda porque o hash anterior mudou. Ordem verificável não significa transação válida.${pohEntries.length === 5 ? ' Reinicie para experimentar outra ordem.' : ''}`;
-  } catch (error) { if (revision === pohRevision) { $('#poh-status').textContent = error.message; renderPoh(); } }
-});
-$('#poh-reset').addEventListener('click', resetPoh);
-resetPoh();

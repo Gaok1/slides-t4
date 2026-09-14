@@ -37,7 +37,7 @@ catch { playwright = require(path.join(process.env.USERPROFILE, '.cache/codex-ru
   }
   await page.setViewportSize({ width: 1440, height: 900 });
   const go = async n => { await page.evaluate(n => { location.hash = String(n); }, n); await page.waitForFunction(n => document.querySelector('#slide-current').textContent === String(n).padStart(2, '0'), n); };
-  await go(4); await page.locator('#dh-reveal').click(); assert.match(await page.locator('#dh-result').innerText(), /compartilhado: 2/);
+  await go(4); await page.locator('#dh-reveal').click(); assert.match(await page.locator('#dh-result').innerText(), /mesma chave: 2/);
   await go(10); for (let i = 0; i < 3; i++) await page.locator('#shor-step').click(); assert.match(await page.locator('#shor-answer').innerText(), /15 = 3 × 5/); assert(await page.locator('#shor-step').isDisabled()); await page.locator('#shor-reset').click(); assert.equal(await page.locator('#shor-counter').innerText(), 'PASSO 1 / 4');
   await go(16); assert.match(await page.locator('#mosca-result').innerText(), /excede.*3 anos/);
   await page.locator('#quantum-years').fill('25'); assert.match(await page.locator('#mosca-result').innerText(), /Margem hipotética de 10 anos/);

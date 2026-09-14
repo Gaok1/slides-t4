@@ -35,14 +35,13 @@ O arquivo final é uma apresentação **HTML**, não um arquivo `.pptx`.
 
 ## Expansão blockchain
 
-O terceiro ato agora inclui fluxo de transações, comparação BTC/ETH/SOL, contratos inteligentes, paralelismo de contas da Solana e riscos quânticos nas três redes.
+O terceiro ato parte do problema do gasto duplo, mostra de onde veio cada peça entre 1991 e 2022, monta a cadeia em três laboratórios — hash, elo e prova de trabalho — e só então apresenta as variações: proof of stake, as três redes e contratos. Os slides estáticos ficam sem clique de propósito; a interação existe onde o resultado não caberia em um texto.
 
-- **SHA-256:** edite duas entradas UTF-8, compare os hashes e a quantidade real de bits diferentes. Usa Web Crypto nativo, sem enviar dados. Espaços e acentos contam. Limite: 1.000 caracteres por entrada.
-- **Blocos encadeados (16):** o modo padrão propaga novas referências e hashes aos sucessores. O modo congelado conserva as referências originais e mostra elos quebrados. Cada bloco permite inspecionar o JSON exato usado no SHA-256 e o hash completo. Recalcular restaura apenas a coerência local, não consenso, assinaturas ou prova de trabalho.
-- **Nonce / PoW (17):** escolha manualmente um inteiro de 0 a 4.294.967.295, clique para testar ou incrementar. Hash real, contador de tentativas e média idealizada por dificuldade. Busca automática em ritmo didático ou rápido, limitada a 8.192 tentativas ou 30 segundos por clique. Para ao sair do slide. O tempo inclui pausas e não é benchmark de mineração. Não minera moedas.
-- **Proof of stake (18):** quatro etapas clicáveis explicam garantia, proposta, votos e finalidade, com ressalvas sobre penalidades e regras de consenso.
-- **Proof of History (19):** registre até quatro eventos em uma sequência real de SHA-256. Cada cálculo usa a saída anterior. Modelo didático de dependência e ordem, não implementação do PoH, relógio real ou validação de transações. PoH não substitui o consenso baseado em stake da Solana.
-- **Custódia:** contrato simulado com depósito, confirmação, autorização e proteção contra dupla liberação. Não é código de contrato implantado.
+- **SHA-256 (25):** edite duas entradas UTF-8, compare os hashes e a quantidade real de bits diferentes. Usa Web Crypto nativo, sem enviar dados. Espaços e acentos contam. Limite: 1.000 caracteres por entrada.
+- **Blocos encadeados (26):** o modo padrão propaga novas referências e hashes aos sucessores. O modo congelado conserva as referências originais e mostra elos quebrados. Cada bloco permite inspecionar o JSON exato usado no SHA-256 e o hash completo. Recalcular restaura apenas a coerência local, não consenso, assinaturas ou prova de trabalho.
+- **Nonce / PoW (27):** escolha manualmente um inteiro de 0 a 4.294.967.295 e teste, ou rode a busca cronometrada. Hash real, contador de tentativas, tempo decorrido e taxa de hashes por segundo medida neste navegador, ao lado da média idealizada por dificuldade. A busca para em 500.000 tentativas, 20 segundos ou ao sair do slide. O tempo inclui o custo da Web Crypto e não é benchmark de mineração. Não minera moedas.
+- **Sorteio por stake (29):** distribua o stake entre quatro validadores e sorteie uma rodada ou duzentas. A proporção de turnos se aproxima da proporção de stake no agregado, sem garantia em nenhuma rodada isolada. Modelo didático: não reproduz sorteio verificável, comitês, slots, épocas nem slashing. Proof of History aparece na comparação das três redes (30), como ordenação, não como consenso.
+- **Custódia (31):** contrato simulado com depósito, confirmação, autorização e proteção contra dupla liberação. Não é código de contrato implantado.
 - **Fundo animado:** blocos recebem dados e propagam referências. Ilustração sem conexão com redes reais, pausável no botão ou com M.
 
 Valide a expansão com `node tests/blockchain.cjs`. O teste também verifica hashes contra o SHA-256 do Node, regras do contrato, pausa de animações e ausência de chamadas HTTP externas.
