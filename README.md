@@ -1,6 +1,6 @@
 # Criptografia pós-quântica & Blockchain
 
-Abra **index.html** em um navegador. Esta é a versão atual da apresentação, com 43 slides, tema branco minimalista, notas e demonstrações locais. Somente os links de referência precisam de internet.
+Abra **index.html** em um navegador. Esta é a versão atual da apresentação, com 44 slides, tema branco minimalista, notas e demonstrações locais. Somente os links de referência precisam de internet.
 
 O arquivo `ROTEIRO_80_MIN.md` divide a apresentação entre três pessoas e reserva 2 minutos de margem dentro da duração total de 1h20.
 
@@ -39,9 +39,10 @@ O terceiro ato parte do problema do gasto duplo, mostra de onde veio cada peça 
 
 - **SHA-256 (25):** edite duas entradas UTF-8, compare os hashes e a quantidade real de bits diferentes. Usa Web Crypto nativo, sem enviar dados. Espaços e acentos contam. Limite: 1.000 caracteres por entrada.
 - **Blocos encadeados (26):** o modo padrão propaga novas referências e hashes aos sucessores. O modo congelado conserva as referências originais e mostra elos quebrados. Cada bloco permite inspecionar o JSON exato usado no SHA-256 e o hash completo. Recalcular restaura apenas a coerência local, não consenso, assinaturas ou prova de trabalho.
-- **Nonce / PoW (27):** escolha manualmente um inteiro de 0 a 4.294.967.295 e teste, ou rode a busca cronometrada. Hash real, contador de tentativas, tempo decorrido e taxa de hashes por segundo medida neste navegador, ao lado da média idealizada por dificuldade. A busca para em 500.000 tentativas, 20 segundos ou ao sair do slide. O tempo inclui o custo da Web Crypto e não é benchmark de mineração. Não minera moedas.
-- **Sorteio por stake (29):** distribua o stake entre quatro validadores e sorteie uma rodada ou duzentas. A proporção de turnos se aproxima da proporção de stake no agregado, sem garantia em nenhuma rodada isolada. Modelo didático: não reproduz sorteio verificável, comitês, slots, épocas nem slashing. Proof of History aparece na comparação das três redes (30), como ordenação, não como consenso.
-- **Custódia (31):** contrato simulado com depósito, confirmação, autorização e proteção contra dupla liberação. Não é código de contrato implantado.
+- **Nonce / PoW (27):** escolha qualquer inteiro não negativo, digite livremente de 0 a 64 zeros hexadecimais e teste, ou rode a busca cronometrada. Hash real, contador de tentativas, tempo decorrido e taxa de hashes por segundo medida neste navegador, ao lado da média idealizada por dificuldade. A busca continua até encontrar um nonce, clicar em Parar ou sair do slide. O tempo inclui o custo da Web Crypto e não é benchmark de mineração. Não minera moedas. O campo real do cabeçalho Bitcoin continua sendo um inteiro de 32 bits.
+- **Esqueleto do Bitcoin (28):** três blocos mostram os seis campos do cabeçalho de 80 bytes, o hash calculado, a contagem e o corpo de transações. Os hashes abreviados são ilustrativos e deixam visível o elo entre blocos.
+- **Sorteio por stake (30):** distribua o stake entre quatro validadores e sorteie uma rodada ou duzentas. A proporção de turnos se aproxima da proporção de stake no agregado, sem garantia em nenhuma rodada isolada. Modelo didático: não reproduz sorteio verificável, comitês, slots, épocas nem slashing. Proof of History aparece na comparação das três redes (31), como ordenação, não como consenso.
+- **Custódia (32):** exemplo estático com depósito, confirmação, autorização e proteção contra dupla liberação. Não é código de contrato implantado.
 - **Fundo animado:** blocos recebem dados e propagam referências. Ilustração sem conexão com redes reais, pausável no botão ou com M.
 
 Valide a expansão com `node tests/blockchain.cjs`. O teste também verifica hashes contra o SHA-256 do Node, regras do contrato, pausa de animações e ausência de chamadas HTTP externas.

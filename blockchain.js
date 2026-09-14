@@ -49,7 +49,7 @@ async function updateHashLab() {
     $('#hash-percent').textContent = `${fmt(bits / 256 * 100, 1)}%`;
     $('#hash-bytes-a').textContent = `${new TextEncoder().encode(a).length} bytes UTF-8`;
     $('#hash-bytes-b').textContent = `${new TextEncoder().encode(b).length} bytes UTF-8`;
-    $('#hash-status').textContent = a === b ? 'Entradas idênticas produzem o mesmo hash. SHA-256 é determinístico.' : 'SHA-256 real, calculado localmente. Um espaço também é um dado. Hash não é cifra nem assinatura.';
+    $('#hash-status').textContent = a === b ? 'Hashes iguais.' : `${bits} bits diferentes.`;
   } catch (error) { if (revision === hashRevision) $('#hash-status').textContent = error.message; }
 }
 ['hash-reference', 'hash-input'].forEach(id => document.getElementById(id).addEventListener('input', updateHashLab));
@@ -107,7 +107,7 @@ async function updateChain() {
       if (badLink) inherited = true;
     });
     $('#chain-status').classList.toggle('warn', changed > 0);
-    $('#chain-status').textContent = broken ? `${broken} elo(s) quebrado(s): as referências antigas ficaram congeladas. Os sucessores não se atualizam sozinhos.` : changed ? (mode === 'cascade' ? `${changed} hash(es) diferente(s) do original. As novas referências propagaram a alteração, sem refazer PoW nem obter consenso.` : 'O hash do último bloco mudou. Não há sucessor neste exemplo para apresentar um elo quebrado. Isso não significa aprovação pela rede.') : mode === 'cascade' ? 'Propagação ativa: edite o bloco 1 para ver os três hashes mudarem. Edite o bloco 2 para mudar apenas os dois últimos.' : 'Referências congeladas: edite os dados e observe o elo seguinte guardar o hash antigo.';
+    $('#chain-status').textContent = broken ? `${broken} elo(s) quebrado(s).` : changed ? (mode === 'cascade' ? `${changed} hash(es) alterado(s).` : 'Hash do último bloco alterado.') : mode === 'cascade' ? 'Cadeia original.' : 'Referências congeladas.';
   } catch (error) { if (revision === chainRevision) $('#chain-status').textContent = error.message; }
   finally { if (revision === chainRevision) $('#chain-reset').disabled = false; }
 }
@@ -127,7 +127,7 @@ $('#chain-reset').addEventListener('click', () => { $$('.chain-data').forEach((i
 
 // Proof of work: manual attempts for the audience, timed search for the sense of scale.
 let mining = false, miningRevision = 0, powAttempts = 0, powStarted = 0, powElapsed = 0, powRate = 0;
-const maxNonce = 4294967295, powMaxAttempts = 500000, powMaxMillis = 20000, powBatch = 512;
+const powBatch = 512;
 function renderPowMetrics() {
   $('#pow-attempts').textContent = fmt(powAttempts);
   $('#pow-elapsed').textContent = `${fmt(powElapsed / 1000, 1)} s`;
@@ -141,39 +141,50 @@ function setMining(active) {
 function stopMining() {
   if (!mining) return;
   ++miningRevision; powElapsed = performance.now() - powStarted; setMining(false); renderPowMetrics();
-  $('#pow-status').textContent = 'Busca interrompida. Nenhuma atividade continua em segundo plano.';
+  $('#pow-status').textContent = 'Busca parada.';
 }
 function getNonce() {
-  const input = $('#pow-nonce'), nonce = Number(input.value);
-  if (input.value.trim() === '' || !Number.isSafeInteger(nonce) || nonce < 0 || nonce > maxNonce) throw new Error('Informe um nonce inteiro entre 0 e 4.294.967.295.');
-  return nonce;
+  const value = $('#pow-nonce').value.trim();
+  if (!/^\d+$/.test(value)) throw new Error('Informe um nonce inteiro não negativo, sem espaços ou sinais.');
+  return BigInt(value);
+}
+const powPayload = (data, nonce) => `[${JSON.stringify(data)},${nonce.toString()}]`;
+function getDifficulty() {
+  const difficulty = Number($('#pow-difficulty').value);
+  if (!Number.isInteger(difficulty) || difficulty < 0 || difficulty > 64) throw new Error('Informe uma quantidade inteira de zeros entre 0 e 64.');
+  return difficulty;
 }
 function pendingPow(reset = false) {
   stopMining(); ++miningRevision;
   if (reset) { powAttempts = 0; powElapsed = 0; powRate = 0; }
   renderPowMetrics();
-  const d = +$('#pow-difficulty').value;
-  $('#pow-expected').textContent = fmt(16 ** d);
-  $('.pow-expectation p').textContent = `tentativas para ${d} ${d === 1 ? 'zero hexadecimal' : 'zeros hexadecimais'}`;
-  $('#pow-hash').textContent = 'Clique em testar para calcular SHA-256.';
+  $('#pow-hash').textContent = '—';
   $('#pow-status').classList.remove('warn');
-  $('#pow-status').textContent = 'Escolha seu nonce. Editar não conta como tentativa; testar calcula um hash.';
+  try {
+    const d = getDifficulty();
+    $('#pow-expected').textContent = d <= 5 ? fmt(16 ** d) : `16^${d}`;
+    $('.pow-expectation p').textContent = `tentativas para ${d} ${d === 1 ? 'zero hexadecimal' : 'zeros hexadecimais'}`;
+    $('#pow-status').textContent = 'Pronto.';
+  } catch (error) {
+    $('#pow-expected').textContent = '—';
+    $('.pow-expectation p').textContent = 'quantidade personalizada de zeros';
+    $('#pow-status').textContent = error.message;
+  }
 }
 async function testNonce(increment = false) {
   if (mining) return;
   const revision = ++miningRevision;
   try {
-    let nonce = getNonce();
+    let nonce = getNonce(), difficulty = getDifficulty();
     if (increment) {
-      if (nonce === maxNonce) throw new Error('Limite de 32 bits atingido. Escolha outro nonce.');
-      nonce++; $('#pow-nonce').value = nonce;
+      nonce++; $('#pow-nonce').value = nonce.toString();
     }
-    const hash = await sha256(JSON.stringify([$('#pow-data').value, nonce]));
+    const hash = await sha256(powPayload($('#pow-data').value, nonce));
     if (revision !== miningRevision) return;
     powAttempts++; renderPowMetrics(); $('#pow-hash').textContent = hash;
-    const success = hash.startsWith('0'.repeat(+$('#pow-difficulty').value));
+    const success = hash.startsWith('0'.repeat(difficulty));
     $('#pow-status').classList.toggle('warn', !success);
-    $('#pow-status').textContent = success ? `Acertou! Nonce ${fmt(nonce)} atende ao prefixo. Repetir os mesmos dados e nonce repete este hash.` : `Nonce ${fmt(nonce)} não atende ao prefixo. Tente outro: este hash não indica qual vai funcionar.`;
+    $('#pow-status').textContent = success ? `Válido · nonce ${fmt(nonce)}.` : `Inválido · nonce ${fmt(nonce)}.`;
   } catch (error) { if (revision === miningRevision) { $('#pow-hash').textContent = '—'; $('#pow-status').textContent = error.message; } }
 }
 $('#pow-test').addEventListener('click', () => testNonce());
@@ -181,18 +192,17 @@ $('#pow-increment').addEventListener('click', () => testNonce(true));
 $('#pow-clear').addEventListener('click', () => pendingPow(true));
 $('#pow-mine').addEventListener('click', async () => {
   if (mining) return;
-  let start;
-  try { start = getNonce(); } catch (error) { $('#pow-status').textContent = error.message; return; }
-  const data = $('#pow-data').value, prefix = '0'.repeat(+$('#pow-difficulty').value), revision = ++miningRevision;
-  const available = maxNonce - start + 1;
+  let start, difficulty;
+  try { start = getNonce(); difficulty = getDifficulty(); } catch (error) { $('#pow-status').textContent = error.message; return; }
+  const data = $('#pow-data').value, prefix = '0'.repeat(difficulty), revision = ++miningRevision;
   let searched = 0;
   powStarted = performance.now(); powElapsed = 0; powRate = 0; setMining(true);
   try {
-    while (searched < available && searched < powMaxAttempts && performance.now() - powStarted < powMaxMillis) {
-      const size = Math.min(powBatch, available - searched, powMaxAttempts - searched);
-      const first = start + searched;
+    while (true) {
+      const size = powBatch;
+      const first = start + BigInt(searched);
       // One batch per turn of the event loop: the clock stays honest and the page stays responsive.
-      const hashes = await Promise.all(Array.from({ length: size }, (_, k) => sha256(JSON.stringify([data, first + k]))));
+      const hashes = await Promise.all(Array.from({ length: size }, (_, k) => sha256(powPayload(data, first + BigInt(k)))));
       if (revision !== miningRevision) return;
       const hit = hashes.findIndex(hash => hash.startsWith(prefix));
       const shown = hit === -1 ? size - 1 : hit;
@@ -200,25 +210,24 @@ $('#pow-mine').addEventListener('click', async () => {
       powAttempts += hit === -1 ? size : hit + 1;
       powElapsed = performance.now() - powStarted;
       powRate = powElapsed > 0 ? Math.round(searched / (powElapsed / 1000)) : 0;
-      $('#pow-nonce').value = first + shown; $('#pow-hash').textContent = hashes[shown]; renderPowMetrics();
+      $('#pow-nonce').value = (first + BigInt(shown)).toString(); $('#pow-hash').textContent = hashes[shown]; renderPowMetrics();
       if (hit !== -1) {
         $('#pow-status').classList.remove('warn');
-        $('#pow-status').textContent = `Encontrado: nonce ${fmt(first + hit)} em ${fmt(searched)} tentativas e ${fmt(powElapsed / 1000, 1)} s. Conferir este resultado custa um único hash.`;
+        $('#pow-status').textContent = `Nonce ${fmt(first + BigInt(hit))} · ${fmt(searched)} tentativas · ${fmt(powElapsed / 1000, 1)} s.`;
         return;
       }
       $('#pow-status').classList.add('warn');
-      $('#pow-status').textContent = `${fmt(searched)} tentativas nesta busca, ${fmt(powElapsed / 1000, 1)} s. Ainda sem o prefixo ${prefix}.`;
+      $('#pow-status').textContent = `${fmt(searched)} tentativas · ${fmt(powElapsed / 1000, 1)} s.`;
       await new Promise(resolve => setTimeout(resolve));
       if (revision !== miningRevision) return;
     }
-    $('#pow-status').textContent = `Parou em ${fmt(searched)} tentativas: limite de 500.000 tentativas, 20 s ou fim da faixa do nonce. Não há garantia de encontrar uma solução.`;
   } catch (error) { if (revision === miningRevision) $('#pow-status').textContent = error.message; }
   finally { if (revision === miningRevision) { powElapsed = performance.now() - powStarted; setMining(false); renderPowMetrics(); } }
 });
 $('#pow-stop').addEventListener('click', stopMining);
 $('#pow-nonce').addEventListener('input', () => pendingPow());
 $('#pow-data').addEventListener('input', () => pendingPow(true));
-$('#pow-difficulty').addEventListener('change', () => pendingPow(true));
+$('#pow-difficulty').addEventListener('input', () => pendingPow(true));
 document.addEventListener('slidechange', () => { if (!$('#pow-slide').classList.contains('active')) stopMining(); });
 pendingPow(true);
 
@@ -256,45 +265,17 @@ function drawRounds(times) {
 }
 $('#stake-draw').addEventListener('click', () => {
   const picked = drawRounds(1);
-  if (picked < 0) { renderStake('Sem stake não há sorteio: distribua algum capital entre os validadores.', -1, true); return; }
-  renderStake(`${stakeNames[picked]} propõe o bloco desta rodada. Total de rodadas: ${fmt(stakeRounds())}. Propor não é aprovar: os outros validadores conferem as regras antes de aceitar.`, picked);
+  if (picked < 0) { renderStake('Defina algum stake.', -1, true); return; }
+  renderStake(`${stakeNames[picked]} · rodada ${fmt(stakeRounds())}.`, picked);
 });
 $('#stake-run').addEventListener('click', () => {
-  if (drawRounds(200) < 0) { renderStake('Sem stake não há sorteio: distribua algum capital entre os validadores.', -1, true); return; }
+  if (drawRounds(200) < 0) { renderStake('Defina algum stake.', -1, true); return; }
   const weights = stakeWeights(), total = stakeTotal(weights), rounds = stakeRounds(), lead = weights.indexOf(Math.max(...weights));
-  renderStake(`${fmt(rounds)} rodadas sorteadas. ${stakeNames[lead]} tem ${fmt(weights[lead] / total * 100)}% do stake e ficou com ${fmt(stakeTurns[lead] / rounds * 100)}% dos turnos: a proporção se aproxima no agregado, e nenhuma rodada isolada é garantida.`);
+  renderStake(`${fmt(rounds)} rodadas · ${stakeNames[lead]}: ${fmt(weights[lead] / total * 100)}% do stake, ${fmt(stakeTurns[lead] / rounds * 100)}% dos turnos.`);
 });
-$('#stake-reset').addEventListener('click', () => { stakeTurns = stakeNames.map(() => 0); renderStake('Contagem zerada. Ajuste os stakes e sorteie de novo.'); });
+$('#stake-reset').addEventListener('click', () => { stakeTurns = stakeNames.map(() => 0); renderStake('Contagem zerada.'); });
 $$('.stake-input').forEach(input => input.addEventListener('input', () => {
   stakeTurns = stakeNames.map(() => 0);
-  renderStake('Stake alterado: a contagem de turnos foi zerada, porque os pesos do sorteio mudaram.');
+  renderStake('Pesos atualizados.');
 }));
-renderStake('Ajuste os stakes e sorteie. Nenhum turno é garantido.');
-
-let escrow = { deposited: false, delivered: false, released: false };
-function renderEscrow(message, failed = false) {
-  $('#escrow-balance').textContent = escrow.deposited && !escrow.released ? '10' : '0';
-  $('#seller-balance').textContent = escrow.released ? '10' : '0';
-  $('#contract-deposit').disabled = escrow.deposited;
-  $('#contract-confirm').disabled = !escrow.deposited || escrow.delivered || escrow.released;
-  $('#contract-result').classList.toggle('warn', failed);
-  $('#contract-result').textContent = message;
-}
-$('#contract-deposit').addEventListener('click', () => {
-  if (escrow.deposited) return;
-  escrow.deposited = true; renderEscrow('10 unidades em custódia. Falta confirmar a entrega.');
-});
-$('#contract-confirm').addEventListener('click', () => {
-  if (!escrow.deposited || escrow.released) return;
-  escrow.delivered = true; renderEscrow('Comprador confirmou a entrega. A função liberar() pode conferir as condições.');
-});
-$('#contract-release').addEventListener('click', () => {
-  let failure = '';
-  if ($('#contract-caller').value !== 'buyer') failure = 'Chamador não autorizado.';
-  else if (!escrow.deposited) failure = 'Falta o depósito de 10 unidades.';
-  else if (!escrow.delivered) failure = 'Entrega ainda não confirmada.';
-  else if (escrow.released) failure = 'Pagamento já liberado. Uma segunda retirada é rejeitada.';
-  if (failure) { renderEscrow(`Rejeitada: ${failure} Saldos não mudaram.`, true); return; }
-  escrow.released = true; renderEscrow('Executada: 10 unidades transferidas ao vendedor. Custódia encerrada.');
-});
-$('#contract-reset').addEventListener('click', () => { escrow = { deposited: false, delivered: false, released: false }; $('#contract-caller').value = 'buyer'; renderEscrow('Depósito: 0. Entrega: não confirmada.'); });
+renderStake('Pronto para sortear.');
