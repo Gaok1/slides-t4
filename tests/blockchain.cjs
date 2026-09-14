@@ -130,7 +130,7 @@ const digest = text => createHash('sha256').update(text, 'utf8').digest('hex');
   await page.locator('#contract-release').click(); assert.match(await page.locator('#contract-result').innerText(), /segunda retirada/); assert.equal(await page.locator('#seller-balance').innerText(), '10'); await fits();
   await page.locator('#contract-reset').click(); assert.equal(await page.locator('#seller-balance').innerText(), '0');
   await go('solana-slide'); await page.locator('[data-conflict=yes]').click(); assert.match(await page.locator('#parallel-result').innerText(), /escrevem em X/); await fits(); await page.locator('[data-conflict=no]').click();
-  await page.setViewportSize({ width: 390, height: 844 }); await go('hash-slide'); await page.locator('#hash-input').fill('abc'); await page.waitForFunction(expected => document.querySelector('#hash-output-b').textContent === expected, digest('abc')); assert.equal(await page.locator('#slide-current').innerText(), '25');
+  await page.setViewportSize({ width: 390, height: 844 }); await go('hash-slide'); await page.locator('#hash-input').fill('abc'); await page.waitForFunction(expected => document.querySelector('#hash-output-b').textContent === expected, digest('abc')); assert.equal(await page.locator('#slide-current').innerText(), '24');
   await page.locator('#hash-input').press('ArrowRight'); assert.equal(await page.locator('#slide-current').innerText(), '25');
   assert.deepEqual(errors, []); assert.deepEqual(networkRequests, []);
   console.log('SHA-256, UTF-8, avalanche, chain tampering, mining limits/cancel, contract guards, animation controls and offline checks passed.');

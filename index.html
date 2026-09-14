@@ -15,8 +15,8 @@
   <nav aria-label="Atos da apresentação">
     <button data-goto="3">01 <span>A ameaça</span></button>
     <button data-goto="17">02 <span>A defesa</span></button>
-    <button data-goto="24">03 <span>A blockchain</span></button>
-    <button data-goto="39">04 <span>O horizonte</span></button>
+    <button data-goto="23">03 <span>A blockchain</span></button>
+    <button data-goto="38">04 <span>O horizonte</span></button>
   </nav>
   <button id="overview-open" class="icon-button" title="Visão geral (G)" aria-label="Abrir visão geral">▦</button>
 </header>
@@ -42,8 +42,8 @@
     <div class="act-grid">
       <button class="act-card" data-goto="3"><span class="act-no">I</span><span class="mono cyan">1976—2009</span><h3>A conta que<br>ninguém pagou</h3><p>Chave pública, Shor e a origem do Bitcoin.</p><span class="act-link">A ameaça <b>↗</b></span></button>
       <button class="act-card" data-goto="17"><span class="act-no">II</span><span class="mono cyan">1978—2025</span><h3>A defesa<br>se organiza</h3><p>Famílias pós-quânticas, NIST e novas assinaturas.</p><span class="act-link">A defesa <b>↗</b></span></button>
-      <button class="act-card" data-goto="24"><span class="act-no">III</span><span class="mono amber">2025—2026</span><h3>A blockchain<br>acorda</h3><p>BTC, ETH, SOL, contratos e laboratórios de hashing.</p><span class="act-link">A blockchain <b>↗</b></span></button>
-      <button class="act-card" data-goto="39"><span class="act-no">IV</span><span class="mono amber">2026—2035</span><h3>O horizonte</h3><p>Padronização, prazos e decisões sem uma data para o Q-Day.</p><span class="act-link">O horizonte <b>↗</b></span></button>
+      <button class="act-card" data-goto="23"><span class="act-no">III</span><span class="mono amber">2025—2026</span><h3>A blockchain<br>acorda</h3><p>BTC, ETH, SOL, contratos e laboratórios de hashing.</p><span class="act-link">A blockchain <b>↗</b></span></button>
+      <button class="act-card" data-goto="38"><span class="act-no">IV</span><span class="mono amber">2026—2035</span><h3>O horizonte</h3><p>Padronização, prazos e decisões sem uma data para o Q-Day.</p><span class="act-link">O horizonte <b>↗</b></span></button>
     </div>
     <p class="footnote">Clique em um ato para navegar. Use as setas do teclado para avançar e voltar.</p>
     <aside class="notes">A linha narrativa é linear dentro de cada ato. O segundo ato retorna a 1978 para mostrar que algumas alternativas à criptografia clássica antecedem o ataque de Shor. Fonte principal: PDF fornecido, páginas 1 a 7.</aside>
@@ -66,12 +66,12 @@
     <aside class="notes"><b>Tempo: 3 min · Pessoa 1.</b> Primeiro conte a história sem fórmulas. Depois mostre os números: Alice envia 5⁶ mod 23 = 8; Bob envia 5¹⁵ mod 23 = 19. Alice calcula 19⁶ mod 23 e Bob calcula 8¹⁵ mod 23; ambos obtêm 2. A chave 2 nunca atravessou a rede. Em sistemas reais, os números são enormes. Diffie–Hellman é acordo de chaves, não cifra mensagens e não autentica sozinho. Fonte: roteiro, p. 1.</aside>
   </section>
 
-  <section class="slide" data-title="Na internet, as técnicas trabalham juntas" data-act="1">
-    <p class="eyebrow">CRIPTOGRAFIA HÍBRIDA · EXEMPLO: TLS 1.3 / HTTPS</p><h2>Cada algoritmo assume<br><span class="cyan">uma parte do fluxo</span></h2>
-    <div class="concept-grid four hybrid-flow"><article><span class="mono cyan">01 · IDENTIDADE</span><h3>ECDSA ou RSA-PSS</h3><p>A assinatura do certificado ajuda a provar quem é o servidor.</p></article><article><span class="mono cyan">02 · COMBINAÇÃO</span><h3>ECDHE</h3><p>Cliente e servidor chegam ao mesmo segredo, como no Diffie–Hellman.</p></article><article><span class="mono amber">03 · DERIVAÇÃO</span><h3>HKDF + SHA-256/384</h3><p>O segredo é transformado em chaves separadas para a sessão.</p></article><article><span class="mono amber">04 · DADOS</span><h3>AES-GCM ou ChaCha20-Poly1305</h3><p>A cifra simétrica protege rapidamente cada mensagem.</p></article></div>
-    <div class="takeaway"><strong>Assimétrica autentica e combina.</strong><span>Simétrica protege o volume de dados com eficiência.</span></div>
-    <p class="footnote">O TLS negocia opções compatíveis; não existe um único conjunto fixo. Aqui, “híbrida” significa assimétrica + simétrica.</p>
-    <aside class="notes"><b>Tempo: 3 min · Pessoa 1.</b> Fluxo simplificado do TLS 1.3. A assinatura do certificado pode usar ECDSA ou RSA-PSS; o acordo efêmero normalmente usa (EC)DHE, como X25519; HKDF deriva chaves a partir do segredo; AES-GCM ou ChaCha20-Poly1305 oferece cifra autenticada aos registros. Os nomes disponíveis e a escolha final dependem das implementações. No TLS 1.3, RSA pode autenticar por assinatura, mas não transporta a chave da sessão como em versões antigas. Fonte: <a href="https://www.rfc-editor.org/info/rfc8446/" target="_blank" rel="noopener">RFC 8446</a>.</aside>
+  <section class="slide" data-title="Criptografia híbrida: RSA e AES" data-act="1">
+    <p class="eyebrow">CRIPTOGRAFIA HÍBRIDA · VISÃO BÁSICA</p><h2>Criptografia híbrida<br><span class="cyan">combina RSA e AES</span></h2>
+    <div class="compare-columns"><article><span class="mono cyan">RSA · CHAVE PÚBLICA E PRIVADA</span><h3>Protege a chave da sessão</h3><p>Permite enviar com segurança a pequena chave que será compartilhada.</p><div class="tag-line">Bom para proteger chaves pequenas.</div></article><article><span class="mono amber">AES · UMA CHAVE COMPARTILHADA</span><h3>Protege as mensagens</h3><p>Usa a chave da sessão para cifrar os dados com rapidez.</p><div class="tag-line">Bom para grandes volumes de dados.</div></article></div>
+    <div class="takeaway"><strong>RSA protege a chave.</strong><span>AES usa essa chave para proteger os dados.</span></div>
+    <p class="footnote">Este é um modelo didático de criptografia híbrida. Protocolos modernos podem usar outros algoritmos.</p>
+    <aside class="notes"><b>Tempo: 3 min · Pessoa 1.</b> Explique apenas o fluxo básico: primeiro, o RSA protege a pequena chave de sessão; depois, o AES usa essa chave para cifrar as mensagens. Essa combinação aproveita a facilidade de distribuição de chaves da criptografia assimétrica e a velocidade da criptografia simétrica. Em protocolos modernos, como TLS 1.3, o acordo de chaves costuma usar Diffie–Hellman efêmero em vez de transporte de chave por RSA.</aside>
   </section>
 
   <section class="slide" data-title="RSA: uma via fácil e outra difícil" data-act="1">
@@ -88,8 +88,8 @@
     <aside class="notes"><b>Tempo: 2 min · Pessoa 1.</b> Não é necessário desenhar a curva nem explicar a operação de grupo. Destaque por que ECC foi atraente para celulares e blockchains: chaves e assinaturas menores. A comparação equivale aproximadamente a 128 bits de segurança clássica. Fonte: roteiro, p. 2.</aside>
   </section>
 
-  <section class="slide" data-title="Cifrar e assinar não são a mesma coisa" data-act="1">
-    <p class="eyebrow">DUAS AÇÕES · DUAS PERGUNTAS</p><h2>Cifrar esconde.<br><span class="cyan">Assinar autoriza.</span></h2>
+  <section class="slide" data-title="Criptografia e assinatura digital" data-act="1">
+    <p class="eyebrow">DUAS AÇÕES · DUAS FINALIDADES</p><h2>Criptografia e assinatura<br><span class="cyan">têm funções diferentes</span></h2>
     <div class="compare-columns"><article><span class="mono cyan">CIFRA</span><h3 class="display-word medium">Mensagem<br>ilegível</h3><p>Objetivo principal: confidencialidade.</p><div class="tag-line">Quem não tem a chave não deve ler.</div></article><article><span class="mono amber">ASSINATURA DIGITAL</span><h3 class="display-word medium">Autoria<br>verificável</h3><p>Objetivos: autenticidade e integridade.</p><div class="tag-line">A chave pública verifica; a privada assina.</div></article></div>
     <aside class="notes"><b>Tempo: 2 min · Pessoa 1.</b> Corrija a simplificação comum de “criptografar com a chave privada”. Em uma assinatura moderna, aplica-se um algoritmo de assinatura ao resumo ou à mensagem seguindo um esquema específico. A assinatura normalmente não esconde o conteúdo.</aside>
   </section>
@@ -129,9 +129,9 @@
     <aside class="notes">Qubits físicos são ruidosos. Qubits lógicos usam correção de erros. Contagens só fazem sentido junto às taxas de erro, arquitetura e duração. A barra de 2025 marca o limite de 1 milhão, não uma medição exata. A comparação não representa uma previsão para o Q-Day. A experiência de 2001 consta do PDF, pp. 2–3.</aside>
   </section>
 
-  <section class="slide image-slide" data-title="Bitcoin: dois pilares, dois riscos" data-act="1">
+  <section class="slide image-slide" data-title="Hashes e assinaturas no Bitcoin" data-act="1">
     <img class="background" src="assets/blockchain.png" alt="Ilustração conceitual de três blocos de vidro ligados, com uma fissura dourada no último bloco"><div class="image-shade"></div>
-    <div class="image-content"><p class="eyebrow">2009 · O BITCOIN NASCE</p><h2>Dois pilares.<br><span class="cyan">Dois riscos.</span></h2><div class="line-item"><h3>Hashes conectam os blocos</h3><p>SHA-256 participa da integridade e da prova de trabalho. Grover muda o custo de buscas.</p></div><div class="line-item"><h3 class="amber">Assinaturas autorizam os gastos</h3><p>ECDSA e, posteriormente, Schnorr dependem de curvas elípticas. Shor ameaça essa base.</p></div><p class="highlight-statement">Uma assinatura forjada pode parecer um pagamento legítimo.</p></div>
+    <div class="image-content"><p class="eyebrow">2009 · O BITCOIN NASCE</p><h2>Hashes e assinaturas<br><span class="cyan">protegem partes diferentes</span></h2><div class="line-item"><h3>Hashes conectam os blocos</h3><p>SHA-256 participa da integridade e da prova de trabalho. Grover muda o custo de buscas.</p></div><div class="line-item"><h3 class="amber">Assinaturas autorizam os gastos</h3><p>ECDSA e, posteriormente, Schnorr dependem de curvas elípticas. Shor ameaça essa base.</p></div><p class="highlight-statement">Uma assinatura forjada pode parecer um pagamento legítimo.</p></div>
     <div class="image-caption">ILUSTRAÇÃO CONCEITUAL</div>
     <aside class="notes">Um ataque às assinaturas não precisa reescrever todo o histórico nem quebrar SHA-256. Recuperar uma chave privada a partir de uma chave pública pode permitir criar um gasto aceito pelas regras. Isso pressupõe um computador quântico criptanaliticamente relevante, não uma capacidade demonstrada nesta apresentação. Fonte: PDF, pp. 3 e 5.</aside>
   </section>
@@ -151,9 +151,9 @@
     <aside class="notes">O PDF descreve Store Now, Decrypt Later. Não é necessário afirmar quem já coleta dados nem em que volume para explicar o risco. A desigualdade x + y > z indica que o prazo necessário excede o disponível. A igualdade representa ausência de margem. Fonte: PDF, p. 3.</aside>
   </section>
 
-  <section class="slide lattice-slide" data-title="PQC: outras hipóteses matemáticas" data-act="2">
+  <section class="slide lattice-slide" data-title="Criptografia pós-quântica em computadores comuns" data-act="2">
     <img class="lattice-art" src="assets/lattice.png" alt="Ilustração conceitual de um reticulado de vidro com um ponto dourado deslocado">
-    <div class="lattice-content"><p class="eyebrow">ATO II · A DEFESA SE ORGANIZA</p><h2>Outras hipóteses.<br><span class="cyan">Computadores comuns.</span></h2><p class="intro">PQC roda em hardware clássico e busca resistir a ataques clássicos e quânticos conhecidos.</p><div class="family-list"><article><span>01</span><div><h3>Reticulados</h3><p>Problemas em espaços de muitas dimensões, frequentemente com ruído. Base de ML-KEM e ML-DSA.</p></div></article><article><span>02</span><div><h3>Códigos corretores de erros</h3><p>Decodificação difícil sem informação secreta. McEliece já explorava essa ideia em 1978.</p></div></article><article><span>03</span><div><h3>Assinaturas baseadas em hash</h3><p>Autenticidade apoiada em hashes. Algumas exigem controle de estado, outras não.</p></div></article></div></div>
+    <div class="lattice-content"><p class="eyebrow">ATO II · A DEFESA SE ORGANIZA</p><h2>Criptografia pós-quântica<br><span class="cyan">roda em computadores comuns</span></h2><p class="intro">PQC usa novos problemas matemáticos para resistir a ataques clássicos e quânticos conhecidos.</p><div class="family-list"><article><span>01</span><div><h3>Reticulados</h3><p>Problemas em espaços de muitas dimensões, frequentemente com ruído. Base de ML-KEM e ML-DSA.</p></div></article><article><span>02</span><div><h3>Códigos corretores de erros</h3><p>Decodificação difícil sem informação secreta. McEliece já explorava essa ideia em 1978.</p></div></article><article><span>03</span><div><h3>Assinaturas baseadas em hash</h3><p>Autenticidade apoiada em funções hash.</p></div></article></div></div>
     <div class="image-caption">RETICULADO CONCEITUAL · NÃO REPRESENTA UM ALGORITMO</div>
     <aside class="notes">Pós-quântica não significa criptografia executada em computador quântico. Não existe garantia de “inquebrável”: a segurança se apoia no conhecimento atual. Assinaturas baseadas em hash protegem autenticidade e integridade, não sigilo de mensagens por si só. McEliece é uma família histórica, não um dos três FIPS de agosto de 2024. Fonte: PDF, pp. 3–4 e <a href="https://csrc.nist.gov/projects/post-quantum-cryptography" target="_blank" rel="noopener">NIST PQC</a>.</aside>
   </section>
@@ -170,13 +170,6 @@
     <div class="standards-strip"><div><span>FIPS 203</span><strong>ML-KEM</strong><small>Estabelecimento de chaves</small></div><div><span>FIPS 204</span><strong>ML-DSA</strong><small>Assinaturas digitais</small></div><div><span>FIPS 205</span><strong>SLH-DSA</strong><small>Assinaturas baseadas em hash</small></div></div>
     <p class="footnote"><a href="https://csrc.nist.gov/projects/post-quantum-cryptography" target="_blank" rel="noopener">NIST · processo e padrões</a>. KEM e assinatura têm funções diferentes.</p>
     <aside class="notes">O escrutínio público reduz o risco de adoção prematura. ML-KEM deriva de Kyber, ML-DSA de Dilithium e SLH-DSA de SPHINCS+. Falcon segue um processo de padronização separado. A adição de HQC em 2025 contextualiza o fim do segundo ato. Fonte: PDF, pp. 4–5 e NIST. Nenhuma seleção significa imunidade absoluta.</aside>
-  </section>
-
-  <section class="slide" data-title="QRL: segurança também depende do estado" data-act="2">
-    <p class="eyebrow">2018 · QUANTUM RESISTANT LEDGER</p><h2>A segurança também<br><span class="cyan">depende do estado</span></h2>
-    <div class="split"><div><p class="intro">A QRL levou assinaturas XMSS a uma blockchain em produção.</p><div class="line-item"><h3>Uma chave de uso único por assinatura</h3><p>A carteira precisa acompanhar quais índices já consumiu.</p></div><div class="line-item"><h3>Backups exigem cuidado</h3><p>Voltar a um estado antigo pode levar à reutilização de uma chave de uso único.</p></div></div><div class="demo-box"><div class="demo-label">SIMULAÇÃO DO ÍNDICE XMSS <span>8 POSIÇÕES ILUSTRATIVAS</span></div><div id="xmss-keys" class="key-grid"></div><div class="button-row"><button id="xmss-sign" class="primary">Assinar mensagem</button><button id="xmss-backup" class="secondary">Restaurar estado antigo</button></div><div id="xmss-result" class="result" aria-live="polite">O próximo índice é 0. Nenhuma chave foi usada.</div><button id="xmss-reset" class="text-button">Reiniciar demonstração</button></div></div>
-    <p class="footnote">Simulação local, sem gerar chaves reais. <a href="https://docs.theqrl.org/use/wallet/overview/" target="_blank" rel="noopener">QRL · XMSS e índices OTS</a></p>
-    <aside class="notes">O risco de reutilização de OTS não implica que todo backup cause perda de moedas, nem demonstra um incidente real na QRL. Carteiras precisam gerir o estado corretamente. A árvore de oito posições é apenas uma miniatura didática. O lançamento da rede principal ocorreu em 26 de junho de 2018. <a href="https://www.theqrl.org/blog/happy-two-year-qrl-anniversary/" target="_blank" rel="noopener">QRL, aniversário da rede</a>. PDF, p. 4.</aside>
   </section>
 
   <section class="slide light-slide" data-title="O tamanho da assinatura muda a conta" data-act="2">
@@ -199,7 +192,7 @@
     <p class="eyebrow">ALÉM DA MATEMÁTICA</p><h2>O algoritmo é só<br><span class="cyan">uma parte do sistema</span></h2>
     <div class="concept-grid three"><article><span class="mono amber">TEMPO</span><h3>Canal lateral</h3><p>Tempo, energia ou cache podem revelar informações da chave.</p></article><article><span class="mono amber">ALEATORIEDADE</span><h3>Números ruins</h3><p>Sementes previsíveis podem enfraquecer chaves e assinaturas.</p></article><article><span class="mono amber">OPERAÇÃO</span><h3>Estado e atualização</h3><p>Backups, índices e versões precisam continuar coerentes.</p></article></div>
     <div class="takeaway"><strong>“Padronizado” não significa “automaticamente seguro”.</strong><span>Implementação e operação também precisam de teste.</span></div>
-    <aside class="notes"><b>Tempo: 2 min · Pessoa 2.</b> Conecte o item de estado ao slide da QRL. Evite afirmar que uma biblioteca específica possui falhas. O objetivo é separar segurança do esquema, implementação resistente a canais laterais e operação correta do sistema.</aside>
+    <aside class="notes"><b>Tempo: 2 min · Pessoa 2.</b> Evite afirmar que uma biblioteca específica possui falhas. O objetivo é separar segurança do esquema, implementação resistente a canais laterais e operação correta do sistema.</aside>
   </section>
 
   <section class="slide blockchain-lab" id="flow-slide" data-title="Uma transação ganha um lugar na cadeia" data-act="3">
@@ -374,21 +367,21 @@ liberar(caller):
   </section>
 
   <section class="slide closing" data-title="Segurança, escala e consenso" data-act="4">
-    <img class="background" src="assets/quantum.png" alt=""><div class="closing-shade"></div><div class="closing-content"><p class="eyebrow">ENCERRAMENTO</p><h2>A matemática já<br>mudou a pergunta.<br><span class="cyan">A migração ainda<br>depende de nós.</span></h2><p class="intro">O desafio das blockchains combina segurança,<br>custo de operação e consenso sobre as regras.</p><div class="closing-question">Como proteger os fundos sem tornar<br>a rede inacessível a quem a mantém?</div><button class="secondary" data-goto="44">Fontes e leituras ↗</button></div>
+    <img class="background" src="assets/quantum.png" alt=""><div class="closing-shade"></div><div class="closing-content"><p class="eyebrow">ENCERRAMENTO</p><h2>A matemática já<br>mudou a pergunta.<br><span class="cyan">A migração ainda<br>depende de nós.</span></h2><p class="intro">O desafio das blockchains combina segurança,<br>custo de operação e consenso sobre as regras.</p><div class="closing-question">Como proteger os fundos sem tornar<br>a rede inacessível a quem a mantém?</div><button class="secondary" data-goto="43">Fontes e leituras ↗</button></div>
     <aside class="notes">Retome a pergunta central e abra a discussão. A conclusão não depende de prever o Q-Day. A segurança precisa de alternativas criptográficas, mas sua adoção envolve escala e legitimidade social. Fonte: fechamento do PDF, p. 7.</aside>
   </section>
 
   <section class="slide references" data-title="Fontes e leituras" data-act="4">
     <p class="eyebrow">REFERÊNCIAS · CONSULTA EM 13/09/2026</p><h2>Fontes <span class="cyan">e leituras</span></h2>
     <p class="intro">Roteiro-base: <em>Seminário: Criptografia Pós-Quântica e Blockchain</em>, PDF fornecido, 7 páginas.</p>
-    <div class="reference-grid"><div><h3>Fundamentos e hardware</h3><a href="https://arxiv.org/abs/quant-ph/9508027" target="_blank" rel="noopener">Shor · fatoração e logaritmos discretos ↗</a><a href="https://arxiv.org/abs/quant-ph/9605043" target="_blank" rel="noopener">Grover · busca quântica ↗</a><a href="https://arxiv.org/abs/1905.09749" target="_blank" rel="noopener">Gidney & Ekerå · estimativa de 2019 ↗</a><a href="https://arxiv.org/abs/2505.15917" target="_blank" rel="noopener">Gidney · estimativa de 2025 ↗</a><h3>Redes e governança</h3><a href="https://github.com/bitcoin/bips/blob/master/bip-0360.mediawiki" target="_blank" rel="noopener">Bitcoin · BIP 360 / P2MR ↗</a><a href="https://github.com/bitcoin/bips/blob/master/bip-0361.mediawiki" target="_blank" rel="noopener">Bitcoin · BIP 361 / migração ↗</a></div><div><h3>Padrões e implementação</h3><a href="https://csrc.nist.gov/projects/post-quantum-cryptography" target="_blank" rel="noopener">NIST · processo PQC e transição ↗</a><a href="https://csrc.nist.gov/pubs/fips/204/final" target="_blank" rel="noopener">FIPS 204 · ML-DSA ↗</a><a href="https://csrc.nist.gov/pubs/fips/205/final" target="_blank" rel="noopener">FIPS 205 · SLH-DSA ↗</a><a href="https://falcon-sign.info/" target="_blank" rel="noopener">Falcon · especificações e tamanhos ↗</a><a href="https://docs.theqrl.org/use/wallet/overview/" target="_blank" rel="noopener">QRL · gestão de índices XMSS ↗</a><a href="https://ethereum.org/roadmap/security/quantum-resistance/" target="_blank" rel="noopener">Ethereum · resistência quântica ↗</a></div></div>
+    <div class="reference-grid"><div><h3>Fundamentos e hardware</h3><a href="https://arxiv.org/abs/quant-ph/9508027" target="_blank" rel="noopener">Shor · fatoração e logaritmos discretos ↗</a><a href="https://arxiv.org/abs/quant-ph/9605043" target="_blank" rel="noopener">Grover · busca quântica ↗</a><a href="https://arxiv.org/abs/1905.09749" target="_blank" rel="noopener">Gidney & Ekerå · estimativa de 2019 ↗</a><a href="https://arxiv.org/abs/2505.15917" target="_blank" rel="noopener">Gidney · estimativa de 2025 ↗</a><h3>Redes e governança</h3><a href="https://github.com/bitcoin/bips/blob/master/bip-0360.mediawiki" target="_blank" rel="noopener">Bitcoin · BIP 360 / P2MR ↗</a><a href="https://github.com/bitcoin/bips/blob/master/bip-0361.mediawiki" target="_blank" rel="noopener">Bitcoin · BIP 361 / migração ↗</a></div><div><h3>Padrões e implementação</h3><a href="https://csrc.nist.gov/projects/post-quantum-cryptography" target="_blank" rel="noopener">NIST · processo PQC e transição ↗</a><a href="https://csrc.nist.gov/pubs/fips/204/final" target="_blank" rel="noopener">FIPS 204 · ML-DSA ↗</a><a href="https://csrc.nist.gov/pubs/fips/205/final" target="_blank" rel="noopener">FIPS 205 · SLH-DSA ↗</a><a href="https://falcon-sign.info/" target="_blank" rel="noopener">Falcon · especificações e tamanhos ↗</a><a href="https://ethereum.org/roadmap/security/quantum-resistance/" target="_blank" rel="noopener">Ethereum · resistência quântica ↗</a></div></div>
     <p class="footnote">Questões: <a href="https://download.inep.gov.br/download/Enade2008_RNP/COMPUTACAO.pdf" target="_blank" rel="noopener">ENADE 2008</a>, <a href="https://download.inep.gov.br/educacao_superior/enade/provas/2019/ENGENHARIA_COMPUTACAO.pdf" target="_blank" rel="noopener">ENADE 2019</a> e <a href="https://download.inep.gov.br/enade/provas_e_gabaritos/2021_PV_bacharelado_ciencia_computacao.pdf" target="_blank" rel="noopener">ENADE 2021</a>. Ilustrações conceituais geradas por IA; demonstrações locais e simplificadas. Links externos exigem internet.</p>
     <aside class="notes">O PDF contém marcadores “[cite: 1]” sem uma bibliografia identificável. Eles não foram reproduzidos como se fossem citações verificadas. Fontes primárias complementam os pontos técnicos e temporais. Ajustes principais: distinguir Shor/Grover, assinatura/sigilo, STARK/SNARK, estimativas/demonstrações e propostas/ativação. O conjunto preserva o percurso dos quatro atos.</aside>
   </section>
 </main>
 
 <footer class="toolbar">
-  <div class="slide-meta"><span id="slide-current">01</span><span class="muted">/</span><span id="slide-total">44</span><span id="slide-chapter" class="muted">SEMINÁRIO</span></div>
+  <div class="slide-meta"><span id="slide-current">01</span><span class="muted">/</span><span id="slide-total">43</span><span id="slide-chapter" class="muted">SEMINÁRIO</span></div>
   <div class="tools"><button id="motion-toggle" title="Pausar ou retomar animações (M)" aria-label="Pausar animações de blockchain" aria-pressed="false">⏸</button><button id="notes-toggle" title="Notas do apresentador (N)" aria-label="Mostrar notas do apresentador" aria-expanded="false">Notas <kbd>N</kbd></button><button id="help-open" title="Ajuda e atalhos (?)" aria-label="Abrir ajuda">?</button><button id="fullscreen" title="Tela cheia (F)" aria-label="Alternar tela cheia">⛶</button><span class="separator"></span><button id="prev" aria-label="Slide anterior">←</button><button id="next" aria-label="Próximo slide">→</button></div>
 </footer>
 <div class="progress-track"><div id="deck-progress"></div></div>

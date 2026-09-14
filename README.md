@@ -1,6 +1,6 @@
 # Criptografia pós-quântica & Blockchain
 
-Abra **index.html** em um navegador. Esta é a versão atual da apresentação, com 44 slides, tema branco minimalista, notas e demonstrações locais. Somente os links de referência precisam de internet.
+Abra **index.html** em um navegador. Esta é a versão atual da apresentação, com 43 slides, tema branco minimalista, notas e demonstrações locais. Somente os links de referência precisam de internet.
 
 O arquivo `ROTEIRO_80_MIN.md` divide a apresentação entre três pessoas e reserva 2 minutos de margem dentro da duração total de 1h20.
 

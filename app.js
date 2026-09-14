@@ -142,32 +142,6 @@ function updateMosca() {
 }
 ['secret-years','migration-years','quantum-years'].forEach(id => document.getElementById(id).addEventListener('input', updateMosca));
 
-let xmssIndex = 0;
-const usedKeys = new Set();
-function renderXmss(reused = -1) {
-  $('#xmss-keys').innerHTML = Array.from({ length: 8 }, (_, i) => `<span class="${usedKeys.has(i) ? 'used ' : ''}${i === xmssIndex ? 'current ' : ''}${i === reused ? 'reused' : ''}" aria-label="Índice ${i}: ${i === reused ? 'reutilizado' : usedKeys.has(i) ? 'usado' : 'disponível'}">${i}</span>`).join('');
-  $('#xmss-sign').disabled = xmssIndex >= 8;
-}
-$('#xmss-sign').addEventListener('click', () => {
-  if (xmssIndex >= 8) return;
-  const reused = usedKeys.has(xmssIndex);
-  const signedIndex = xmssIndex;
-  usedKeys.add(xmssIndex++);
-  $('#xmss-result').classList.toggle('warn', reused);
-  $('#xmss-result').textContent = reused ? `Alerta: índice ${signedIndex} reutilizado. Na criptografia real, reutilizar OTS pode comprometer a segurança.` : `Índice ${signedIndex} consumido. ${xmssIndex < 8 ? `Próximo índice: ${xmssIndex}.` : 'Todas as posições desta demonstração foram consumidas.'}`;
-  renderXmss(reused ? signedIndex : -1);
-});
-$('#xmss-backup').addEventListener('click', () => {
-  xmssIndex = 0; renderXmss();
-  $('#xmss-result').classList.toggle('warn', usedKeys.size > 0);
-  $('#xmss-result').textContent = usedKeys.size ? 'O contador voltou a 0, mas as assinaturas anteriores continuam existindo. Assine de novo para observar o risco.' : 'O contador voltou a 0. Ainda não há assinaturas anteriores nesta simulação.';
-});
-$('#xmss-reset').addEventListener('click', () => {
-  xmssIndex = 0; usedKeys.clear(); renderXmss();
-  $('#xmss-result').classList.remove('warn');
-  $('#xmss-result').textContent = 'O próximo índice é 0. Nenhuma chave foi usada.';
-});
-
 const schemes = [
   { name: 'ECDSA', family: 'Base clássica · formato bruto', key: 33, sig: 64 },
   { name: 'Falcon-512', family: 'Reticulados · tamanho aproximado', key: 897, sig: 666 },
@@ -258,4 +232,4 @@ $('#quiz-next').addEventListener('click', () => {
 });
 $('#quiz-restart').addEventListener('click', () => { quizIndex = 0; quizScore = 0; renderQuiz(); });
 
-renderShor(); updateMosca(); renderXmss(); renderSizes(); renderExposure('hidden'); updateVolume(); renderQuiz(); goTo(parseHash(), false);
+renderShor(); updateMosca(); renderSizes(); renderExposure('hidden'); updateVolume(); renderQuiz(); goTo(parseHash(), false);
