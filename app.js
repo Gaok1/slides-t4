@@ -246,12 +246,32 @@ const quiz = [
       'Correta: reúne exatamente as três afirmações certas — I, II e IV — e exclui a única errada, III (que confunde simétrica com assimétrica).'
     ],
     source: 'ENADE 2021 · Ciência da Computação · Questão 24 · gabarito oficial: E'
+  },
+  {
+    question: 'Sobre a tecnologia Blockchain, considerada um sistema de registro distribuído de transações, assinale a alternativa correta:',
+    options: [
+      'Baseia-se em um livro-razão distribuído, composto por blocos encadeados criptograficamente, cujos registros são imutáveis após validados por mecanismos de consenso, garantindo transparência e segurança.',
+      'Trata-se de um sistema centralizado, no qual uma única autoridade governamental controla, válida e armazena os registros em blocos criptografados em todas as transações realizadas na rede, garantindo transparência, segurança e anonimato.',
+      'É uma tecnologia desenvolvida exclusivamente para viabilizar criptomoedas, composto por blocos encadeados criptograficamente como o Bitcoin, garantindo transparência e segurança.',
+      'Depende obrigatoriamente de um servidor central responsável por autenticar, validar e autorizar todas as transações efetuadas pelos usuários, utilizando blocos encadeados criptograficamente, cujos registros não podem ser imutáveis.',
+      'Impede qualquer forma de rastreamento das operações realizadas, por mecanismos de consenso, garantindo transparência e segurança, assegurando anonimato absoluto aos participantes da rede.'
+    ],
+    answer: 0,
+    rationale: [
+      'Correta: reúne exatamente as características de uma blockchain — livro-razão distribuído, blocos encadeados por hash e imutabilidade depois que o consenso valida o bloco.',
+      'Errada: o ponto central de uma blockchain é justamente não depender de uma autoridade central — vários nós replicam e validam o registro de forma distribuída, como vimos no fluxo de transação.',
+      'Errada: blockchain não nasceu nem se limita a criptomoedas — a mesma estrutura de blocos encadeados sustenta contratos inteligentes, como os que vimos em Ethereum e Solana.',
+      'Errada: contraria dois pilares ao mesmo tempo — não existe servidor central obrigatório (é descentralizada), e a imutabilidade dos registros validados é uma característica central, não sua ausência.',
+      'Errada: contradiz a si mesma — transparência e rastreabilidade são características do modelo (o histórico é público); a maioria das blockchains oferece pseudonimato por endereços, não anonimato absoluto, como discutimos na exposição de chaves públicas do Bitcoin.'
+    ],
+    source: 'IVIN · 2026 · Prefeitura de Campo Grande do Piauí – PI · Professor de Ciências da Computação · Segurança da Informação / Criptografia',
+    sourceUrl: 'https://www.qconcursos.com/questoes-de-concursos/questoes/f1740ede-28'
   }
 ];
 let quizIndex = 0, quizScore = 0, quizAnswered = false;
 function renderQuiz() {
   const q = quiz[quizIndex]; quizAnswered = false;
-  $('#quiz-number').textContent = `PERGUNTA ${String(quizIndex + 1).padStart(2, '0')} / 03`;
+  $('#quiz-number').textContent = `PERGUNTA ${String(quizIndex + 1).padStart(2, '0')} / ${String(quiz.length).padStart(2, '0')}`;
   $('#quiz-question').textContent = q.question;
   $('#quiz-source').innerHTML = q.sourceUrl ? `Fonte: <a href="${q.sourceUrl}" target="_blank" rel="noopener">${q.source}</a>` : `Fonte: ${q.source}`;
   $('#quiz-options').classList.remove('revealed');
@@ -265,7 +285,7 @@ function renderQuiz() {
   $('#quiz-feedback').classList.remove('warn');
   $('#quiz-feedback').textContent = 'Escolha uma resposta: cada alternativa vai mostrar por que está certa ou errada.';
   $('#quiz-next').disabled = true;
-  $('#quiz-next').textContent = quizIndex === 2 ? 'Ver resultado →' : 'Próxima pergunta →';
+  $('#quiz-next').textContent = quizIndex === quiz.length - 1 ? 'Ver resultado →' : 'Próxima pergunta →';
 }
 function answerQuiz(answer) {
   if (quizAnswered) return;
@@ -288,7 +308,7 @@ $('#quiz-next').addEventListener('click', () => {
   if (quizIndex < quiz.length - 1) { quizIndex++; renderQuiz(); }
   else {
     $('#quiz-feedback').classList.remove('warn');
-    $('#quiz-feedback').textContent = `${quizScore} de 3 respostas corretas. A migração combina matemática, engenharia e governança.`;
+    $('#quiz-feedback').textContent = `${quizScore} de ${quiz.length} respostas corretas. A migração combina matemática, engenharia e governança.`;
     $('#quiz-next').disabled = true;
     $('#quiz-next').textContent = 'Quiz concluído';
   }
