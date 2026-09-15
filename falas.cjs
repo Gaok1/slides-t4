@@ -160,7 +160,7 @@ header>div{flex:1}
 
 <table class="sumario">${sumario}</table>
 
-<div class="aviso"><b>Tempo.</b> O ato soma ${total} minutos. O roteiro reserva 24, e o deck inteiro vai a 84 min contra a janela de 1h20. Cortes possíveis sem quebrar a corrente: juntar os slides 33 e 34 em uma fala única de 1 min, reduzir o slide 27 para 2 min e o 28 para 1 min.</div>
+<div class="aviso"><b>Tempo.</b> O ato soma ${total} minutos. O deck inteiro vai a 88 min contra uma janela de 80, então há 8 min a cortar. Sem quebrar a corrente: juntar os slides 35 e 36 em uma fala única de 1 min, e reduzir o 27 para 2 min, o 28 para 1 min e o 30 para 1 min. O resto tem de sair do Ato I.</div>
 
 ${slides.map(bloco).join('\n')}
 

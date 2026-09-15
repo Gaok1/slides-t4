@@ -129,3 +129,19 @@
   .evo-rail{position:static;margin:16px 0 0}
   .evo-rail li::after{width:10px;margin:0 6px}
 }
+
+/* Diagramas em SVG: árvore de Merkle e desempate entre cadeias. Escalam pela largura e respeitam o tema. */
+.deck-diagram{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin:4px 0}
+.deck-diagram svg{width:100%;height:auto;max-height:100%}
+.deck-diagram .node{fill:var(--panel);stroke:var(--line);stroke-width:1.2}
+.deck-diagram .node.lead{stroke:var(--cyan);stroke-width:1.8}
+.deck-diagram .node.dead{fill:none;stroke:var(--muted);stroke-dasharray:5 4;opacity:.7}
+.deck-diagram .link{fill:none;stroke:var(--line);stroke-width:1.5}
+.deck-diagram .link.lead{stroke:var(--cyan)}
+.deck-diagram .link.dead{stroke:var(--muted);stroke-dasharray:5 4;opacity:.7}
+.deck-diagram text{font-family:Consolas,monospace;fill:var(--fg)}
+.deck-diagram .t-main{font-size:15px}
+.deck-diagram .t-sub{font-size:11px;fill:var(--muted)}
+.deck-diagram .t-key{font-size:14px;fill:var(--cyan)}
+.deck-diagram .t-warn{font-size:11.5px;fill:var(--amber)}
+.deck-diagram .t-off{font-size:14px;fill:var(--muted)}

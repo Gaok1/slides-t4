@@ -167,6 +167,22 @@
   .evo-rail{position:static;margin:16px 0 0}
   .evo-rail li::after{width:10px;margin:0 6px}
 }
+
+/* Diagramas em SVG: árvore de Merkle e desempate entre cadeias. Escalam pela largura e respeitam o tema. */
+.deck-diagram{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin:4px 0}
+.deck-diagram svg{width:100%;height:auto;max-height:100%}
+.deck-diagram .node{fill:var(--panel);stroke:var(--line);stroke-width:1.2}
+.deck-diagram .node.lead{stroke:var(--cyan);stroke-width:1.8}
+.deck-diagram .node.dead{fill:none;stroke:var(--muted);stroke-dasharray:5 4;opacity:.7}
+.deck-diagram .link{fill:none;stroke:var(--line);stroke-width:1.5}
+.deck-diagram .link.lead{stroke:var(--cyan)}
+.deck-diagram .link.dead{stroke:var(--muted);stroke-dasharray:5 4;opacity:.7}
+.deck-diagram text{font-family:Consolas,monospace;fill:var(--fg)}
+.deck-diagram .t-main{font-size:15px}
+.deck-diagram .t-sub{font-size:11px;fill:var(--muted)}
+.deck-diagram .t-key{font-size:14px;fill:var(--cyan)}
+.deck-diagram .t-warn{font-size:11.5px;fill:var(--amber)}
+.deck-diagram .t-off{font-size:14px;fill:var(--muted)}
 </style>
   <style>@charset "UTF-8";
 
@@ -775,7 +791,7 @@ dialog::backdrop {
     <div class="why-band">
       <div class="why-problem"><b>Problema</b><p>As três peças apareceram soltas, em laboratório. Falta vê-las dentro de um bloco real.</p></div>
       <div class="why-answer"><b>Resposta</b><p>Um cabeçalho de 80 bytes: o elo é <i>hash anterior</i>, a peça 3 são <i>nonce</i> e <i>nBits</i>.</p></div>
-      <div class="why-gap"><b>Ainda falta</b><p>O cabeçalho é o formato parado, não o caminho que a transação percorre até ele.</p></div>
+      <div class="why-gap"><b>Ainda falta</b><p>O cabeçalho tem 80 bytes fixos, mas o bloco carrega milhares de transações. Elas não cabem ali.</p></div>
     </div>
     <div class="btc-block-chain" aria-label="Três blocos Bitcoin encadeados, com os campos do cabeçalho e o corpo de transações">
       <article class="btc-schema-block"><header><b>BLOCO 840.000</b><span>cabeçalho · 80 B</span></header><dl><div><dt>Versão</dt><dd>4 B · 0x20000000</dd></div><div class="wide"><dt>Hash anterior</dt><dd>000000…6f92</dd></div><div class="wide merkle"><dt>Raiz de Merkle</dt><dd>c9f1…2a7e</dd></div><div><dt>Tempo</dt><dd>4 B</dd></div><div><dt>nBits</dt><dd>4 B</dd></div><div class="nonce"><dt>Nonce</dt><dd>4 B</dd></div></dl><div class="btc-block-hash"><span>HASH DO CABEÇALHO</span><code>000000…a11c</code></div><footer><span>txn_count</span><b>transação coinbase + transações</b></footer></article>
@@ -783,7 +799,78 @@ dialog::backdrop {
       <article class="btc-schema-block"><header><b>BLOCO 840.002</b><span>cabeçalho · 80 B</span></header><dl><div><dt>Versão</dt><dd>4 B · 0x20000000</dd></div><div class="wide linked"><dt>Hash anterior</dt><dd>000000…be70</dd></div><div class="wide merkle"><dt>Raiz de Merkle</dt><dd>31a7…f840</dd></div><div><dt>Tempo</dt><dd>4 B</dd></div><div><dt>nBits</dt><dd>4 B</dd></div><div class="nonce"><dt>Nonce</dt><dd>4 B</dd></div></dl><div class="btc-block-hash"><span>HASH DO CABEÇALHO</span><code>000000…d529</code></div><footer><span>txn_count</span><b>transação coinbase + transações</b></footer></article>
     </div>
     <p class="footnote">Valores hexadecimais ilustrativos e abreviados. O Bitcoin calcula SHA-256 duplo sobre o cabeçalho serializado. O hash precisa ser menor ou igual ao alvo codificado em nBits. <a href="https://developer.bitcoin.org/reference/block_chain.html" target="_blank" rel="noopener">Bitcoin Developer Reference: block headers</a>.</p>
-    <aside class="notes"><b>Tempo: 2 min · Pessoa 3.</b> Leia um bloco de cima para baixo. O cabeçalho tem seis campos: versão, hash do cabeçalho anterior, raiz de Merkle, tempo, nBits e nonce. Versão, tempo, nBits e nonce ocupam 4 bytes cada; os dois hashes ocupam 32 bytes cada, somando 80 bytes. O hash do bloco é calculado a partir desse cabeçalho e não é um sétimo campo armazenado dentro dele. Abaixo ficam a contagem e a sequência de transações; a primeira é a coinbase. A raiz de Merkle compromete essas transações sem colocá-las diretamente no trabalho repetitivo de hashing. Os valores exibidos foram inventados e abreviados apenas para mostrar como o hash de um bloco reaparece como hash anterior no bloco seguinte. O nonce real continua limitado a 32 bits, enquanto o laboratório anterior aceita inteiros maiores por decisão didática. <a href="https://developer.bitcoin.org/reference/block_chain.html" target="_blank" rel="noopener">Referência do formato serializado</a>.</aside>
+    <aside class="notes"><b>Tempo: 2 min · Pessoa 3.</b> Leia um bloco de cima para baixo. O cabeçalho tem seis campos: versão, hash do cabeçalho anterior, raiz de Merkle, tempo, nBits e nonce. Versão, tempo, nBits e nonce ocupam 4 bytes cada; os dois hashes ocupam 32 bytes cada, somando 80 bytes. O hash do bloco é calculado a partir desse cabeçalho e não é um sétimo campo armazenado dentro dele. Abaixo ficam a contagem e a sequência de transações; a primeira é a coinbase. A raiz de Merkle compromete essas transações sem colocá-las diretamente no trabalho repetitivo de hashing, e o próximo slide abre essa árvore. Os valores exibidos foram inventados e abreviados apenas para mostrar como o hash de um bloco reaparece como hash anterior no bloco seguinte. O nonce real continua limitado a 32 bits, enquanto o laboratório anterior aceita inteiros maiores por decisão didática. <a href="https://developer.bitcoin.org/reference/block_chain.html" target="_blank" rel="noopener">Referência do formato serializado</a>.</aside>
+  </section>
+
+  <section class="slide blockchain-lab" id="merkle-slide" data-title="Raiz de Merkle: milhares de transações em 32 bytes" data-act="3" data-evo="4">
+    <p class="eyebrow">2009 · RAIZ DE MERKLE · O CAMPO QUE FALTAVA ABRIR</p><h2>Raiz de Merkle<br><span class="cyan">milhares de transações em 32 bytes</span></h2>
+    <div class="why-band">
+      <div class="why-problem"><b>Problema</b><p>O cabeçalho tem 80 bytes fixos. Um bloco carrega milhares de transações, e elas não cabem ali.</p></div>
+      <div class="why-answer"><b>Resposta</b><p>Os hashes são combinados dois a dois até sobrar um. Essa raiz de 32 bytes entra no cabeçalho e prende todas elas.</p></div>
+      <div class="why-gap"><b>Ainda falta</b><p>A raiz prova o conteúdo de um bloco. Não diz qual cadeia vale quando dois blocos nascem juntos.</p></div>
+    </div>
+    <div class="deck-diagram">
+      <svg viewBox="0 0 920 248" role="img" aria-label="Árvore de Merkle: quatro transações viram dois hashes de par e depois uma única raiz de 32 bytes">
+        <text class="t-sub" x="460" y="16" text-anchor="middle">32 BYTES · VAI PARA O CABEÇALHO</text>
+        <rect class="node lead" x="360" y="26" width="200" height="46" rx="5"/>
+        <text class="t-key" x="460" y="55" text-anchor="middle">RAIZ c9f1…2a7e</text>
+        <path class="link lead" d="M240 110 V92 H460 V72"/>
+        <path class="link lead" d="M680 110 V92 H460 V72"/>
+        <rect class="node" x="155" y="110" width="170" height="44" rx="5"/>
+        <text class="t-main" x="240" y="137" text-anchor="middle">H(1+2)</text>
+        <rect class="node" x="595" y="110" width="170" height="44" rx="5"/>
+        <text class="t-main" x="680" y="137" text-anchor="middle">H(3+4)</text>
+        <path class="link" d="M130 190 V172 H240 V154"/>
+        <path class="link" d="M350 190 V172 H240 V154"/>
+        <path class="link" d="M570 190 V172 H680 V154"/>
+        <path class="link" d="M790 190 V172 H680 V154"/>
+        <rect class="node" x="45" y="190" width="170" height="46" rx="5"/>
+        <text class="t-main" x="130" y="211" text-anchor="middle">TX 1</text>
+        <text class="t-sub" x="130" y="227" text-anchor="middle">hash a3f1…</text>
+        <rect class="node" x="265" y="190" width="170" height="46" rx="5"/>
+        <text class="t-main" x="350" y="211" text-anchor="middle">TX 2</text>
+        <text class="t-sub" x="350" y="227" text-anchor="middle">hash 7b0c…</text>
+        <rect class="node" x="485" y="190" width="170" height="46" rx="5"/>
+        <text class="t-main" x="570" y="211" text-anchor="middle">TX 3</text>
+        <text class="t-sub" x="570" y="227" text-anchor="middle">hash e42d…</text>
+        <rect class="node" x="705" y="190" width="170" height="46" rx="5"/>
+        <text class="t-main" x="790" y="211" text-anchor="middle">TX 4</text>
+        <text class="t-sub" x="790" y="227" text-anchor="middle">hash 19a8…</text>
+      </svg>
+    </div>
+    <p class="footnote">Alterar qualquer transação muda a raiz, muda o hash do cabeçalho e invalida o trabalho já gasto naquele bloco. Provar que uma transação está no bloco custa cerca de log₂(n) hashes, não o bloco inteiro. Quando a contagem do nível é ímpar, o Bitcoin duplica o último hash. <a href="https://developer.bitcoin.org/reference/block_chain.html" target="_blank" rel="noopener">Bitcoin: merkle trees</a>.</p>
+    <aside class="notes"><b>Tempo: 2 min · Pessoa 3.</b> Abra o campo que ficou fechado no slide anterior. Suba o diagrama de baixo para cima: cada nível junta dois hashes e corta a quantidade pela metade, até sobrar um. Com mil transações são cerca de dez níveis, e o cabeçalho continua com 80 bytes. Dois ganhos para destacar. Primeiro, integridade: mexer em uma transação muda a raiz, muda o hash do cabeçalho e joga fora o proof of work daquele bloco. Segundo, prova de inclusão: dá para provar que uma transação está no bloco entregando só os hashes irmãos do caminho, sem baixar o bloco inteiro, e é isso que permite carteira leve. Ressalvas: a árvore prova que a transação está no bloco, não que ela é válida nem que o bloco foi aceito pela rede. Os hashes exibidos são inventados. <a href="https://developer.bitcoin.org/reference/block_chain.html" target="_blank" rel="noopener">Referência do formato</a>.</aside>
+  </section>
+
+  <section class="slide blockchain-lab" id="fork-slide" data-title="Desempate: vence a cadeia com mais trabalho" data-act="3" data-evo="4">
+    <p class="eyebrow">PROOF OF WORK · QUANDO EXISTEM DUAS CADEIAS VÁLIDAS</p><h2>Desempate<br><span class="amber">vence a cadeia com mais trabalho</span></h2>
+    <div class="why-band">
+      <div class="why-problem"><b>Problema</b><p>Dois mineradores podem achar um bloco quase ao mesmo tempo. Parte da rede vê uma cadeia, parte vê a outra, e as duas são legítimas.</p></div>
+      <div class="why-answer"><b>Resposta</b><p>Ninguém vota. Cada nó segue a cadeia com mais trabalho acumulado, e o bloco seguinte desempata sozinho.</p></div>
+      <div class="why-gap"><b>Ainda falta</b><p>O bloco perdedor é descartado e suas transações voltam para a fila. Confirmação vira probabilidade, não certeza.</p></div>
+    </div>
+    <div class="deck-diagram">
+      <svg viewBox="0 0 920 244" role="img" aria-label="Uma cadeia se divide em dois blocos 101; o ramo que recebe os blocos seguintes acumula mais trabalho e vence, e o outro é descartado">
+        <text class="t-key" x="900" y="22" text-anchor="end">MAIS TRABALHO ACUMULADO · ESTA CADEIA VENCE</text>
+        <rect class="node" x="20" y="98" width="150" height="54" rx="5"/>
+        <text class="t-main" x="95" y="130" text-anchor="middle">BLOCO 100</text>
+        <path class="link lead" d="M170 125 H210 V67 H250"/>
+        <path class="link dead" d="M170 125 H210 V183 H250"/>
+        <rect class="node lead" x="250" y="40" width="150" height="54" rx="5"/>
+        <text class="t-main" x="325" y="72" text-anchor="middle">BLOCO 101 A</text>
+        <rect class="node dead" x="250" y="156" width="150" height="54" rx="5"/>
+        <text class="t-off" x="325" y="188" text-anchor="middle">BLOCO 101 B</text>
+        <path class="link lead" d="M400 67 H470"/>
+        <rect class="node lead" x="470" y="40" width="150" height="54" rx="5"/>
+        <text class="t-main" x="545" y="72" text-anchor="middle">BLOCO 102</text>
+        <path class="link lead" d="M620 67 H690"/>
+        <rect class="node lead" x="690" y="40" width="150" height="54" rx="5"/>
+        <text class="t-main" x="765" y="72" text-anchor="middle">BLOCO 103</text>
+        <text class="t-warn" x="250" y="232">DESCARTADO · AS TRANSAÇÕES DELE VOLTAM PARA A FILA</text>
+      </svg>
+    </div>
+    <p class="footnote">A regra é o maior trabalho acumulado, não o maior número de blocos: cadeias mineradas com dificuldades diferentes não se comparam por contagem. Bifurcações de um bloco são comuns e se resolvem sozinhas. Isto não é um <i>fork</i> de software, que é mudança de regra. Vale para o proof of work; PoS e PoH resolvem a ordem por outros mecanismos, adiante no ato. <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">Bitcoin, 2008 · seções 5 e 11</a>.</p>
+    <aside class="notes"><b>Tempo: 2 min · Pessoa 3.</b> Este slide fecha o proof of work. Conte como história: dois mineradores acham o bloco 101 quase juntos, a rede se divide sem que ninguém tenha errado, e as duas cadeias são válidas. A saída não é votação nem autoridade: cada nó segue a cadeia com mais trabalho acumulado, e basta o próximo bloco sair em cima de um dos ramos para o outro ser abandonado. O bloco descartado costuma ser chamado de órfão ou stale, e as transações dele que não entraram no vencedor voltam para a fila, por isso uma transação pode sumir de um bloco e reaparecer em outro. Amarre na confirmação: é daqui que vem a prática de esperar alguns blocos, porque a chance de reversão cai a cada bloco empilhado, mas nunca chega a zero. Três cuidados. Diga trabalho acumulado, não cadeia mais longa. Não chame isto de fork de software. E deixe claro que a explicação vale para o PoW: Ethereum e Solana resolvem ordem e finalidade de outro jeito, o que aparece nos próximos slides. <a href="https://bitcoin.org/bitcoin.pdf" target="_blank" rel="noopener">Bitcoin, 2008</a>.</aside>
   </section>
 
   <section class="slide blockchain-lab" id="flow-slide" data-title="O ciclo da transação: as peças em movimento" data-act="3" data-evo="4">

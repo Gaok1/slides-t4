@@ -19,15 +19,15 @@ catch { playwright = require(path.join(process.env.USERPROFILE, '.cache/codex-ru
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(pathToFileURL(path.join(root, requestedFile)).href);
-  await page.waitForFunction(() => document.querySelector('#overview-grid').children.length === 47);
-  assert.equal(await page.locator('.slide').count(), 47);
+  await page.waitForFunction(() => document.querySelector('#overview-grid').children.length === 49);
+  assert.equal(await page.locator('.slide').count(), 49);
   assert.equal(await page.locator('.slide.active').count(), 1);
   assert(await page.locator('#prev').isDisabled());
   assert(await page.evaluate(() => [...document.images].every(image => image.complete && image.naturalWidth > 0)));
   const layout = [];
   for (const viewport of [{ width: 1440, height: 900 }, { width: 1366, height: 768 }]) {
     await page.setViewportSize(viewport);
-    for (let i = 1; i <= 47; i++) {
+    for (let i = 1; i <= 49; i++) {
       await page.evaluate(i => { location.hash = String(i); }, i);
       await page.waitForFunction(i => document.querySelector('#slide-current').textContent === String(i).padStart(2, '0'), i);
       const sizes = await page.locator('.slide.active').evaluate(slide => ({ width: slide.clientWidth, height: slide.clientHeight, scrollWidth: slide.scrollWidth, scrollHeight: slide.scrollHeight }));
@@ -43,16 +43,16 @@ catch { playwright = require(path.join(process.env.USERPROFILE, '.cache/codex-ru
   await page.locator('#quantum-years').fill('25'); assert.match(await page.locator('#mosca-result').innerText(), /Margem hipotética de 10 anos/);
   await page.locator('#quantum-years').fill('15'); assert.match(await page.locator('#mosca-result').innerText(), /Sem margem/);
   await go(20); await page.locator('[data-size-mode=total]').click(); assert.match(await page.locator('#size-chart').innerText(), /3\.732 B/); await page.locator('[data-size-mode=signature]').click(); assert.match(await page.locator('#size-chart').innerText(), /2\.420 B/);
-  await go(37); await page.locator('[data-exposure=public]').click(); assert.match(await page.locator('#exposure-window').innerText(), /prolongada/);
-  await go(38); assert.equal(await page.locator('#volume-pq').innerText(), '2,42 GB'); await page.locator('#signature-count').fill('10'); assert.equal(await page.locator('#volume-pq').innerText(), '24,2 GB'); await page.locator('#scheme-select').selectOption('3'); assert.equal(await page.locator('#volume-pq').innerText(), '78,56 GB');
-  await go(40); await page.locator('[data-decision=protect]').click(); assert.match(await page.locator('#decision-result').innerText(), /legítimos/);
-  await go(45); for (const answer of [3, 3, 4]) { await page.locator('.quiz-option').nth(answer).click(); await page.locator('#quiz-next').click(); } assert.match(await page.locator('#quiz-feedback').innerText(), /3 de 3/); await page.locator('#quiz-restart').click(); assert.match(await page.locator('#quiz-number').innerText(), /01/);
+  await go(39); await page.locator('[data-exposure=public]').click(); assert.match(await page.locator('#exposure-window').innerText(), /prolongada/);
+  await go(40); assert.equal(await page.locator('#volume-pq').innerText(), '2,42 GB'); await page.locator('#signature-count').fill('10'); assert.equal(await page.locator('#volume-pq').innerText(), '24,2 GB'); await page.locator('#scheme-select').selectOption('3'); assert.equal(await page.locator('#volume-pq').innerText(), '78,56 GB');
+  await go(42); await page.locator('[data-decision=protect]').click(); assert.match(await page.locator('#decision-result').innerText(), /legítimos/);
+  await go(47); for (const answer of [3, 3, 4]) { await page.locator('.quiz-option').nth(answer).click(); await page.locator('#quiz-next').click(); } assert.match(await page.locator('#quiz-feedback').innerText(), /3 de 3/); await page.locator('#quiz-restart').click(); assert.match(await page.locator('#quiz-number').innerText(), /01/);
   await page.locator('#overview-open').click(); assert(await page.locator('#overview').evaluate(e => e.open)); await page.locator('#overview-grid button').nth(7).click(); assert.equal(await page.locator('#slide-current').innerText(), '08');
   await page.locator('#notes-toggle').click(); assert(await page.locator('#notes-panel').isVisible()); await page.keyboard.press('Escape'); assert(await page.locator('#notes-panel').isHidden());
   await page.locator('#help-open').click(); await page.keyboard.press('ArrowRight'); assert.equal(await page.locator('#slide-current').innerText(), '08'); await page.keyboard.press('Escape');
   await page.setViewportSize({ width: 1366, height: 768 });
   const interactionOverflow = [];
-  for (const n of [4, 10, 16, 20, 21, 22, 28, 29, 32, 33, 37, 38, 40, 45]) {
+  for (const n of [4, 10, 16, 20, 21, 22, 28, 29, 30, 31, 34, 35, 39, 40, 42, 47]) {
     await go(n);
     const fits = await page.locator('.slide.active').evaluate(s => s.scrollHeight <= s.clientHeight + 2 && s.scrollWidth <= s.clientWidth + 2);
     if (!fits) interactionOverflow.push(n);
@@ -60,7 +60,7 @@ catch { playwright = require(path.join(process.env.USERPROFILE, '.cache/codex-ru
   assert.deepEqual(interactionOverflow, [], 'Post-interaction slide overflow');
   await go(1); await page.locator('.cover [data-goto]').click(); await page.keyboard.press('Space'); assert.equal(await page.locator('#slide-current').innerText(), '03');
   await go(8);
-  await page.locator('body').click({ position: { x: 10, y: 10 } }); await page.keyboard.press('ArrowRight'); assert.equal(await page.locator('#slide-current').innerText(), '09'); await page.keyboard.press('Home'); assert.equal(await page.locator('#slide-current').innerText(), '01'); await page.keyboard.press('End'); assert.equal(await page.locator('#slide-current').innerText(), '47'); assert(await page.locator('#next').isDisabled());
+  await page.locator('body').click({ position: { x: 10, y: 10 } }); await page.keyboard.press('ArrowRight'); assert.equal(await page.locator('#slide-current').innerText(), '09'); await page.keyboard.press('Home'); assert.equal(await page.locator('#slide-current').innerText(), '01'); await page.keyboard.press('End'); assert.equal(await page.locator('#slide-current').innerText(), '49'); assert(await page.locator('#next').isDisabled());
   await page.evaluate(() => { location.hash = 'garbage'; }); await page.waitForFunction(() => document.querySelector('#slide-current').textContent === '01');
   await page.setViewportSize({ width: 390, height: 844 });
   for (let i = 1; i <= 47; i++) {
@@ -70,12 +70,12 @@ catch { playwright = require(path.join(process.env.USERPROFILE, '.cache/codex-ru
     if ([1, 5, 13, 17].includes(i)) await page.screenshot({ path: path.join(output, `mobile-${i}.png`) });
   }
   fs.writeFileSync(path.join(output, 'layout.json'), JSON.stringify(layout, null, 2));
-  console.log(JSON.stringify({ slides: 47, errors, desktopOverflow: layout, interactionChecks: 'passed', mobileChecks: 'passed' }, null, 2));
+  console.log(JSON.stringify({ slides: 49, errors, desktopOverflow: layout, interactionChecks: 'passed', mobileChecks: 'passed' }, null, 2));
   assert.deepEqual(errors, []);
   assert.deepEqual(layout, [], 'Desktop slides must fit without scroll');
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ media: 'print' });
-  assert.equal(await page.locator('.slide:visible').count(), 47);
+  assert.equal(await page.locator('.slide:visible').count(), 49);
   await page.emulateMedia({ media: 'screen' });
   await browser.close();
 })().catch(error => { console.error(error); process.exit(1); });
