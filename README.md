@@ -1,6 +1,6 @@
 # Criptografia pós-quântica & Blockchain
 
-Abra **index.html** em um navegador. Esta é a versão atual da apresentação, com 45 slides, tema branco minimalista, notas e demonstrações locais. Somente os links de referência precisam de internet.
+Abra **index.html** em um navegador. Esta é a versão atual da apresentação, com 47 slides, tema branco minimalista, notas e demonstrações locais. Somente os links de referência precisam de internet.
 
 O arquivo `ROTEIRO_80_MIN.md` divide a apresentação entre três pessoas e reserva 2 minutos de margem dentro da duração total de 1h20.
 
@@ -35,15 +35,16 @@ O arquivo final é uma apresentação **HTML**, não um arquivo `.pptx`.
 
 ## Expansão blockchain
 
-O terceiro ato parte do problema do gasto duplo, mostra de onde veio cada peça entre 1991 e 2022, monta a cadeia em três laboratórios — hash, elo e prova de trabalho — e só então apresenta as variações: proof of stake, as três redes e contratos. Os slides estáticos ficam sem clique de propósito; a interação existe onde o resultado não caberia em um texto.
+O terceiro ato é uma corrente de causa, não um catálogo de peças. Parte do gasto duplo, mostra em 1991—2022 qual problema gerou cada peça e segue em ordem cronológica: hash, elo, nonce e prova de trabalho, recompensa e halving, o bloco do Bitcoin, o ciclo da transação, contratos (2015), proof of stake e proof of history. Cada slide abre com uma faixa `problema → resposta → ainda falta`, e a lacuna de um slide é o título do seguinte. Uma trilha no rodapé, montada por `blockchain.js` a partir do atributo `data-evo`, marca em que peça a apresentação está. Os slides 36—41 fecham o arco: nenhuma das peças mudou a assinatura, e é aí que Shor entra. Os slides estáticos ficam sem clique de propósito; a interação existe onde o resultado não caberia em um texto.
 
 - **SHA-256 (25):** edite duas entradas UTF-8, compare os hashes e a quantidade real de bits diferentes. Usa Web Crypto nativo, sem enviar dados. Espaços e acentos contam. Limite: 1.000 caracteres por entrada.
 - **Blocos encadeados (26):** o modo padrão propaga novas referências e hashes aos sucessores. O modo congelado conserva as referências originais e mostra elos quebrados. Cada bloco permite inspecionar o JSON exato usado no SHA-256 e o hash completo. Recalcular restaura apenas a coerência local, não consenso, assinaturas ou prova de trabalho.
 - **Nonce / PoW (27):** escolha qualquer inteiro não negativo, digite livremente de 0 a 64 zeros hexadecimais e teste, ou rode a busca cronometrada. Hash real, contador de tentativas, tempo decorrido e taxa de hashes por segundo medida neste navegador, ao lado da média idealizada por dificuldade. A busca continua até encontrar um nonce, clicar em Parar ou sair do slide. O tempo inclui o custo da Web Crypto e não é benchmark de mineração. Não minera moedas. O campo real do cabeçalho Bitcoin continua sendo um inteiro de 32 bits.
-- **Esqueleto do Bitcoin (28):** três blocos mostram os seis campos do cabeçalho de 80 bytes, o hash calculado, a contagem e o corpo de transações. Os hashes abreviados são ilustrativos e deixam visível o elo entre blocos.
-- **Sorteio por stake (30):** distribua o stake entre quatro validadores e sorteie uma rodada ou duzentas. A proporção de turnos se aproxima da proporção de stake no agregado, sem garantia em nenhuma rodada isolada. Modelo didático: não reproduz sorteio verificável, comitês, slots, épocas nem slashing.
-- **Proof of History (31):** uma sequência automática de SHA-256 marca ticks. Edite uma transação e registre-a no próximo tick para ver o hash anterior, a entrada e o novo hash. A tabela compara ordens de grandeza de Bitcoin, Ethereum L1 e Solana. PoH ordena os eventos; a Solana combina esse relógio com consenso por Proof of Stake.
-- **Custódia (33):** exemplo estático com depósito, confirmação, autorização e proteção contra dupla liberação. Não é código de contrato implantado.
+- **Halving (28):** cinco marcos estáticos com o subsídio por bloco, de 50 a 3,125 BTC. Explica quem paga o custo do proof of work: coinbase mais taxas. Valores de subsídio, sem taxas; o teto de 21 milhões é consequência da série, não um parâmetro à parte.
+- **Esqueleto do Bitcoin (29):** três blocos mostram os seis campos do cabeçalho de 80 bytes, o hash calculado, a contagem e o corpo de transações. Os hashes abreviados são ilustrativos e deixam visível o elo entre blocos.
+- **Sorteio por stake (32):** distribua o stake entre quatro validadores e sorteie uma rodada ou duzentas. A proporção de turnos se aproxima da proporção de stake no agregado, sem garantia em nenhuma rodada isolada. Modelo didático: não reproduz sorteio verificável, comitês, slots, épocas nem slashing.
+- **Proof of History (33–34):** a tabela compara ordens de grandeza de Bitcoin, Ethereum L1 e Solana. Na simulação, hashes continuam sem depender das transações; a cada oito ticks, uma entry incorpora em lote tudo que entrou na fila. PoH ordena os eventos, e a Solana combina esse relógio com consenso por Proof of Stake.
+- **Custódia (31):** exemplo estático com depósito, confirmação, autorização e proteção contra dupla liberação. Não é código de contrato implantado.
 - **Fundo animado:** blocos recebem dados e propagam referências. Ilustração sem conexão com redes reais, pausável no botão ou com M.
 
 Valide a expansão com `node tests/blockchain.cjs`. O teste também verifica hashes contra o SHA-256 do Node, regras do contrato, pausa de animações e ausência de chamadas HTTP externas.

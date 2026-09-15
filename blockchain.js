@@ -17,6 +17,21 @@ $$('.slide[data-act="3"]').forEach(slide => {
   backdrop.innerHTML = '<div class="ambient-rail">' + Array.from({ length: 7 }, (_, i) => `<div class="ambient-unit" style="--order:${i}"><div class="ambient-block"><b>BLOCK ${String(i + 1).padStart(2, '0')}</b><i></i><i></i><i></i><small>HASH →</small></div><span class="ambient-link"></span></div>`).join('') + '</div>';
   slide.prepend(backdrop);
 });
+
+// Trilha da evolução. data-evo é o passo atual: os anteriores ficam marcados, os seguintes continuam apagados.
+const evoSteps = [['1991', 'hash'], ['1991', 'elo'], ['1997', 'prova'], ['2009', 'bloco'], ['2015', 'contrato'], ['2012—22', 'stake'], ['2020', 'relógio'], ['hoje', 'quântico']];
+$$('.slide[data-evo]').forEach(slide => {
+  const step = Number(slide.dataset.evo);
+  const rail = document.createElement('ol');
+  rail.className = 'evo-rail';
+  rail.setAttribute('aria-label', 'Linha do tempo das peças da blockchain');
+  rail.innerHTML = evoSteps.map(([year, name], i) => {
+    const state = i + 1 === step ? ' class="on" aria-current="step"' : i + 1 < step ? ' class="done"' : '';
+    return `<li${state}><b>${year}</b><span>${name}</span></li>`;
+  }).join('');
+  slide.insertBefore(rail, slide.querySelector('aside.notes'));
+});
+
 function syncMotion() {
   if (reducedMotion.matches) motionPaused = true;
   $('#motion-toggle').disabled = reducedMotion.matches;
@@ -280,28 +295,49 @@ $$('.stake-input').forEach(input => input.addEventListener('input', () => {
 }));
 renderStake('Pronto para sortear.');
 
-// Proof of History: each tick hashes the previous state; transactions can enter the sequence.
-let pohTick = 0, pohHash = '0'.repeat(64), pohPending = '', pohRunning = false, pohPaused = false, pohTimer = 0, pohRevision = 0;
+// Proof of History: hashes run continuously; each short demo interval closes one entry.
+const POH_INTERVAL = 8;
+const escapePoh = value => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+let pohTick = 0, pohHash = '0'.repeat(64), pohPending = ['Alice → Bob · 2 SOL', 'Carol → Dani · 5 SOL', 'Loja → Fornecedor · 8 SOL'], pohRunning = false, pohPaused = false, pohTimer = 0, pohRevision = 0;
+function renderPohQueue() {
+  $('#poh-queue-count').textContent = pohPending.length;
+  $('#poh-queue').innerHTML = pohPending.length
+    ? pohPending.map(transaction => `<span>${escapePoh(transaction)}</span>`).join('')
+    : '<span class="empty">Nenhuma transação</span>';
+}
+function addPohEntry(batch, hash) {
+  const end = pohTick, start = end - POH_INTERVAL + 1;
+  const entry = document.createElement('article');
+  entry.className = batch.length ? 'has-tx' : '';
+  entry.dataset.txCount = batch.length;
+  entry.innerHTML = `<b>ENTRY · TICKS ${String(start).padStart(6, '0')}–${String(end).padStart(6, '0')} · ${batch.length} TX</b><code>${shortHash(hash)}</code><div>${batch.length ? batch.map(transaction => `<span>${escapePoh(transaction)}</span>`).join('') : '<span class="no-tx">sem transações</span>'}</div>`;
+  $('#poh-stream').prepend(entry);
+  while ($('#poh-stream').children.length > 3) $('#poh-stream').lastElementChild.remove();
+}
 async function stepPoh(revision) {
   if (!pohRunning || revision !== pohRevision) return;
-  const transaction = pohPending, previous = pohHash;
-  pohPending = '';
-  const next = await sha256(transaction ? `${pohHash}|${transaction}` : pohHash);
+  const nextTick = pohTick + 1, closesInterval = nextTick % POH_INTERVAL === 0;
+  const batch = closesInterval ? pohPending.splice(0) : [];
+  const transactionHash = batch.length ? await sha256(batch.join('\n')) : '';
+  const next = await sha256(batch.length ? `${pohHash}|${transactionHash}` : pohHash);
   if (!pohRunning || revision !== pohRevision) return;
-  pohHash = next; pohTick++;
+  pohHash = next; pohTick = nextTick;
   $('#poh-tick').textContent = String(pohTick).padStart(6, '0');
-  if (transaction) {
-    $('#poh-prev').textContent = shortHash(previous);
-    $('#poh-tx-used').textContent = transaction;
-    $('#poh-hash').textContent = shortHash(pohHash);
+  $('#poh-hash').textContent = shortHash(pohHash);
+  const position = (pohTick - 1) % POH_INTERVAL;
+  const rail = $$('#poh-rail span');
+  if (position === 0) rail.forEach(node => { node.className = ''; node.removeAttribute('data-tick'); node.removeAttribute('data-hash'); });
+  rail[position].className = `done${closesInterval ? ' entry' : ''}`;
+  rail[position].dataset.tick = `#${String(pohTick).padStart(6, '0')}`;
+  rail[position].dataset.hash = shortHash(pohHash);
+  const remaining = POH_INTERVAL - position - 1;
+  $('#poh-until').textContent = remaining ? `${remaining} ${remaining === 1 ? 'HASH' : 'HASHES'} ATÉ A ENTRY` : 'ENTRY FECHADA';
+  $('#poh-operation').textContent = batch.length ? `SHA-256(hash anterior + hash de ${batch.length} transações)` : 'SHA-256(hash anterior)';
+  if (closesInterval) {
+    addPohEntry(batch, pohHash);
+    renderPohQueue();
   }
-  $('#poh-add').textContent = 'Registrar'; $('#poh-add').classList.remove('poh-add-queued');
-  const row = document.createElement('div');
-  row.className = transaction ? 'has-tx' : '';
-  row.innerHTML = `<b>#${String(pohTick).padStart(6, '0')}</b><code>${shortHash(pohHash)}</code><span>${transaction}</span>`;
-  $('#poh-stream').prepend(row);
-  while ($('#poh-stream').children.length > 4) $('#poh-stream').lastElementChild.remove();
-  pohTimer = setTimeout(() => stepPoh(revision), 550);
+  pohTimer = setTimeout(() => stepPoh(revision), 450);
 }
 function startPoh() {
   if (pohRunning || pohPaused || !$('#poh-slide').classList.contains('active')) return;
@@ -310,11 +346,13 @@ function startPoh() {
 function stopPoh() {
   pohRunning = false; clearTimeout(pohTimer); pohRevision++;
 }
-$('#poh-add').addEventListener('click', () => {
+$('#poh-form').addEventListener('submit', event => {
+  event.preventDefault();
   const transaction = $('#poh-tx').value.trim();
   if (!transaction) return;
-  pohPending = transaction;
-  $('#poh-add').textContent = 'Agendada'; $('#poh-add').classList.add('poh-add-queued');
+  pohPending.push(transaction);
+  $('#poh-tx').value = '';
+  renderPohQueue();
 });
 $('#poh-toggle').addEventListener('click', () => {
   pohPaused = !pohPaused;
@@ -323,4 +361,5 @@ $('#poh-toggle').addEventListener('click', () => {
   if (pohPaused) stopPoh(); else startPoh();
 });
 document.addEventListener('slidechange', () => { if ($('#poh-slide').classList.contains('active')) startPoh(); else stopPoh(); });
+renderPohQueue();
 startPoh();
