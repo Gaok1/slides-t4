@@ -189,24 +189,81 @@ $$('[data-decision]').forEach(button => button.addEventListener('click', () => {
 }));
 
 const quiz = [
-  { question: 'Ao acessar um servidor web por HTTPS, quais serviços de segurança são oferecidos ao usuário em relação ao HTTP?', options: ['Autenticação do servidor e controle de acesso do cliente.', 'Autenticação do cliente e controle da velocidade.', 'Autenticação da rede e proteção contra vírus.', 'Autenticação do servidor e confidencialidade da transmissão.', 'Autenticação do cliente e temporização das ações.'], answer: 3, explanation: 'HTTPS autentica o servidor por certificado e protege a confidencialidade do canal. Fonte: ENADE Computação 2008, questão 42, gabarito D.' },
-  { question: 'Para o 3DES manter compatibilidade e decifrar uma mensagem cifrada com DES, qual composição deve ser usada?', options: ['D(C(D(m, ka), kb), kc), com ka ≠ kb ≠ kc.', 'D(D(D(m, ka), kb), kc), com ka ≠ kb ≠ kc.', 'D(D(D(m, ka), kb), kc), com ka = kb = kc.', 'D(C(D(m, ka), kb), kc), com ka = kb = kc.', 'D(D(C(m, ka), kb), kc), com ka = kb = kc.'], answer: 3, explanation: 'Com ka = kb = kc, a operação central C desfaz a primeira D; resta uma decifração DES. Fonte: ENADE Engenharia de Computação 2019, questão 18, gabarito D.' },
-  { question: 'Segurança de mensagens: quais afirmações estão corretas?\nI. Uma chave pública autenticada ajuda a verificar o remetente.\nII. Um vetor de inicialização variável dificulta padrões e repetições.\nIII. AES usa um par de chaves diferentes.\nIV. SHA-256 pode ajudar a verificar integridade.', options: ['I e IV.', 'II e III.', 'III e IV.', 'I, II e III.', 'I, II e IV.'], answer: 4, explanation: 'AES é simétrico; por isso a afirmação III está errada. Fonte: ENADE Ciência da Computação 2021, questão 24, gabarito E (enunciado resumido).' }
+  {
+    question: 'Ao se realizar o acesso a um servidor WWW usando o protocolo HTTPS, uma sessão SSL é estabelecida sobre a conexão TCP, entre o programa navegador do usuário e o processo servidor. Para tanto, usam-se mecanismos baseados em criptografia simétrica e assimétrica para prover serviços de segurança. Em relação ao acesso HTTP, sem SSL, que serviços de segurança são providos para o usuário?',
+    options: [
+      'Autenticação do servidor e controle de acesso do cliente.',
+      'Autenticação do cliente e controle da velocidade de transmissão.',
+      'Autenticação da rede e proteção contra vírus.',
+      'Autenticação do servidor e confidencialidade das transmissões.',
+      'Autenticação do cliente e temporização das ações executadas.'
+    ],
+    answer: 3,
+    rationale: [
+      'Errada: sem certificado de cliente, SSL não faz "controle de acesso do cliente" — a parte de autenticação do servidor está certa, mas o resto não.',
+      'Errada: autenticação do cliente exigiria um certificado de cliente, incomum nesse cenário; "controle da velocidade de transmissão" não é um serviço de segurança do SSL.',
+      'Errada: SSL/TLS não autentica "a rede" nem protege contra vírus — isso pertence a outras camadas de segurança, como antivírus e firewall.',
+      'Correta: SSL/TLS soma exatamente esses dois serviços ao HTTP simples — o servidor apresenta um certificado (autenticação) e a sessão cifra os dados em trânsito (confidencialidade).',
+      'Errada: de novo, não há autenticação do cliente por padrão, e "temporização das ações" não é um serviço de segurança do SSL/TLS.'
+    ],
+    source: 'ENADE 2008 · Computação · Questão 42 · gabarito oficial: D'
+  },
+  {
+    question: 'Analise as afirmativas a seguir sobre o algoritmo de criptografia RSA:\n\nI. É um algoritmo de criptografia simétrica, conhecido por utilizar uma única chave para encriptação e decriptação dos dados.\n\nII. É um algoritmo de chave pública que utiliza como base a dificuldade de fatorar números grandes em seus fatores primos, proporcionando segurança na transmissão de dados.\n\nIII. Gera as chaves pública e privada a partir de uma série de operações de multiplicação de números pares, o que o torna resistente a ataques de força bruta.\n\nEstá correto o que se afirma em',
+    options: [
+      'I, apenas.',
+      'II, apenas.',
+      'III, apenas.',
+      'I e II, apenas.',
+      'II e III, apenas.'
+    ],
+    answer: 1,
+    rationale: [
+      'Errada: a afirmativa I está errada — o RSA é um algoritmo de chave pública (assimétrico), com um par de chaves diferentes, não uma única chave simétrica.',
+      'Correta: a afirmativa II descreve o RSA com precisão — chave pública apoiada na dificuldade de fatorar números grandes em seus fatores primos, exatamente como vimos no início da apresentação.',
+      'Errada: a afirmativa III está errada em dois pontos — as chaves vêm de números primos, não de "números pares", e a segurança vem da dificuldade de fatoração, não de "multiplicação de números pares".',
+      'Errada: inclui a afirmativa I, que é falsa (o RSA não é simétrico).',
+      'Errada: inclui a afirmativa III, que descreve incorretamente a geração das chaves do RSA.'
+    ],
+    source: 'FGV · 2024 · Prefeitura de Cuiabá – MT · Auditor Fiscal Tributário da Receita Municipal (Tecnologia da Informação) · Segurança da Informação / Criptografia',
+    sourceUrl: 'https://www.qconcursos.com/questoes-de-concursos/questoes/4208c318-d8'
+  },
+  {
+    question: 'A criptografia de ponta a ponta do WhatsApp garante que somente você e a pessoa com quem você está se comunicando podem ler o que é enviado. Ninguém mais terá acesso a elas, nem mesmo o WhatsApp. As suas mensagens estão seguras com cadeados e somente você e a pessoa que as recebe possuem as chaves especiais necessárias para abri-los e ler as mensagens. E, para uma proteção ainda maior, cada mensagem que você envia tem um cadeado e uma chave únicos.\n(Disponível em: https://faq.whatsapp.com/pt_br/general/28030015. Acesso em: 05 mai. 2020.)\n\nCom base no texto acima, avalie as afirmações a seguir.\n\nI. Se um par de chaves é gerado durante a instalação do aplicativo e a chave pública do usuário é armazenada no servidor, é possível verificar a autenticidade de uma mensagem recebida usando a chave pública do remetente obtida do servidor.\n\nII. A estratégia de utilizar um vetor de inicialização (IV) variável para compor chaves criptográficas diferentes para cada mensagem enviada oculta padrões de dados, além de dificultar os chamados ataques de reprodução.\n\nIII. O uso do algoritmo AES nas comunicações entre dois usuários indica o emprego de criptografia simétrica, isto é, aquela que utiliza um par de chaves, uma usada pelo remetente para encriptar a mensagem, e outra para o destinatário decriptá-la.\n\nIV. A presença do algoritmo SHA-256, no protocolo de comunicação entre cliente e servidor, sugere a verificação de integridade das mensagens, visto que é possível detectar se ocorreu alguma modificação comparando-se os valores de hash da mensagem enviada e recebida.\n\nÉ correto apenas o que se afirma em',
+    options: [
+      'I e IV.',
+      'II e III.',
+      'III e IV.',
+      'I, II e III.',
+      'I, II e IV.'
+    ],
+    answer: 4,
+    rationale: [
+      'Incompleta: I está correta, mas a opção ignora II, que também é uma afirmação correta.',
+      'Errada: II está correta, mas III está errada — ela descreve criptografia simétrica com duas chaves diferentes, o que na verdade é a definição de criptografia assimétrica.',
+      'Errada: IV está correta, mas inclui III, que descreve incorretamente a criptografia simétrica.',
+      'Errada: I e II estão corretas, mas inclui III, que está errada.',
+      'Correta: reúne exatamente as três afirmações certas — I, II e IV — e exclui a única errada, III (que confunde simétrica com assimétrica).'
+    ],
+    source: 'ENADE 2021 · Ciência da Computação · Questão 24 · gabarito oficial: E'
+  }
 ];
 let quizIndex = 0, quizScore = 0, quizAnswered = false;
 function renderQuiz() {
   const q = quiz[quizIndex]; quizAnswered = false;
   $('#quiz-number').textContent = `PERGUNTA ${String(quizIndex + 1).padStart(2, '0')} / 03`;
   $('#quiz-question').textContent = q.question;
+  $('#quiz-source').innerHTML = q.sourceUrl ? `Fonte: <a href="${q.sourceUrl}" target="_blank" rel="noopener">${q.source}</a>` : `Fonte: ${q.source}`;
+  $('#quiz-options').classList.remove('revealed');
   $('#quiz-options').innerHTML = '';
   q.options.forEach((option, i) => {
     const button = document.createElement('button'); button.className = 'quiz-option';
-    button.innerHTML = `<span>${String.fromCharCode(65 + i)}</span>${option}`;
+    button.innerHTML = `<span>${String.fromCharCode(65 + i)}</span><b class="quiz-option-text">${option}</b><small class="quiz-rationale"></small>`;
     button.addEventListener('click', () => answerQuiz(i));
     $('#quiz-options').append(button);
   });
   $('#quiz-feedback').classList.remove('warn');
-  $('#quiz-feedback').textContent = 'Escolha uma resposta para revelar a explicação.';
+  $('#quiz-feedback').textContent = 'Escolha uma resposta: cada alternativa vai mostrar por que está certa ou errada.';
   $('#quiz-next').disabled = true;
   $('#quiz-next').textContent = quizIndex === 2 ? 'Ver resultado →' : 'Próxima pergunta →';
 }
@@ -215,9 +272,15 @@ function answerQuiz(answer) {
   quizAnswered = true;
   const q = quiz[quizIndex], correct = answer === q.answer;
   if (correct) quizScore++;
-  $$('.quiz-option').forEach((button, i) => { button.disabled = true; button.classList.toggle('correct', i === q.answer); button.classList.toggle('wrong', i === answer && !correct); });
+  $$('.quiz-option').forEach((button, i) => {
+    button.disabled = true;
+    button.classList.toggle('correct', i === q.answer);
+    button.classList.toggle('wrong', i === answer && !correct);
+    button.querySelector('.quiz-rationale').textContent = q.rationale[i];
+  });
+  $('#quiz-options').classList.add('revealed');
   $('#quiz-feedback').classList.toggle('warn', !correct);
-  $('#quiz-feedback').textContent = `${correct ? 'Correto.' : 'Veja a resposta destacada.'} ${q.explanation}`;
+  $('#quiz-feedback').textContent = correct ? 'Correto — veja o porquê de cada alternativa acima.' : 'Resposta incorreta — veja o porquê de cada alternativa acima.';
   $('#quiz-next').disabled = false;
 }
 $('#quiz-next').addEventListener('click', () => {
